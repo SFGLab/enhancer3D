@@ -85,11 +85,11 @@ def set_bin_number_for_models(region_start_ref, region_start_mod, genes, enhance
                                                                    'enh_end_mod'] - region_start_mod) // 1000 + 1
 
     full_genes_for_region.loc[full_genes_for_region['gene_strand'] == '+', 'gene_model_position_ref'] = (
-                                                                                                                full_genes_for_region[
-                                                                                                                    'gene_start_ref'] - region_start_ref) // 1000 + 1
+                                                                                                            full_genes_for_region[
+                                                                                                                'gene_start_ref'] - region_start_ref) // 1000 + 1
     full_genes_for_region.loc[full_genes_for_region['gene_strand'] == '-', 'gene_model_position_ref'] = (
-                                                                                                                full_genes_for_region[
-                                                                                                                    'gene_end_ref'] - region_start_ref) // 1000 + 1
+                                                                                                            full_genes_for_region[
+                                                                                                                'gene_end_ref'] - region_start_ref) // 1000 + 1
 
     full_genes_for_region['gene_model_coloring_start_ref'] = (full_genes_for_region[
                                                                   'gene_start_ref'] - region_start_ref) // 1000 + 1
@@ -97,11 +97,11 @@ def set_bin_number_for_models(region_start_ref, region_start_mod, genes, enhance
                                                                 'gene_end_ref'] - region_start_ref) // 1000 + 1
 
     full_genes_for_region.loc[full_genes_for_region['gene_strand'] == '+', 'gene_model_position_mod'] = (
-                                                                                                                full_genes_for_region[
-                                                                                                                    'gene_start_mod'] - region_start_mod) // 1000 + 1
+                                                                                                            full_genes_for_region[
+                                                                                                                'gene_start_mod'] - region_start_mod) // 1000 + 1
     full_genes_for_region.loc[full_genes_for_region['gene_strand'] == '-', 'gene_model_position_mod'] = (
-                                                                                                                full_genes_for_region[
-                                                                                                                    'gene_end_mod'] - region_start_mod) // 1000 + 1
+                                                                                                            full_genes_for_region[
+                                                                                                                'gene_end_mod'] - region_start_mod) // 1000 + 1
 
     full_genes_for_region['gene_model_coloring_start_mod'] = (full_genes_for_region[
                                                                   'gene_start_mod'] - region_start_mod) // 1000 + 1

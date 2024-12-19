@@ -40,6 +40,9 @@ class ChromatinModelEnsemble(BaseModel):
             metadata_stack=self.metadata_stack
         )
 
+    def rename(self, new_name: str) -> 'ChromatinModelEnsemble':
+        return self.model_copy(update={'name': new_name})
+
     def get_model(self, model_id: int) -> ChromatinModel:
         if not 0 <= model_id < self.count:
             raise ValueError(f'Model ensemble does not have {model_id} model.')

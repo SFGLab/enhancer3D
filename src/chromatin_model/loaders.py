@@ -3,7 +3,7 @@ import itertools
 import os
 import re
 from concurrent.futures import ThreadPoolExecutor
-from typing import List, Iterator
+from typing import List, Iterator, Optional
 from utils.pandas_utils import DataFrameBufferedSink
 
 import numpy as np
@@ -17,7 +17,7 @@ logger.setLevel(logging.INFO)
 
 
 _3dgnome_model_metadata_split_pattern = re.compile(r'^(_\S+)\s+(.*)$')
-_3dgnome_model_id_file_name_pattern = re.compile(r'loops_(\S+)_(\d+).hcm.smooth.cif')
+_3dgnome_model_file_name_pattern = re.compile(r'loops_(\S+)_(\d+).hcm.smooth.cif')
 
 
 def _3dgnome_model_extract_metadata_from_line(line: str) -> List[str]:
@@ -34,7 +34,18 @@ def _3dgnome_model_extract_data_from_line(line: str) -> List[str]:
 
 def _3dgnome_model_extract_id_from_file_name(file_name: str) -> int:
     # loops_chr1_74280_3521135_1.hcm.smooth.cif
-    return int(_3dgnome_model_id_file_name_pattern.match(file_name).group(2))
+    return int(_3dgnome_model_file_name_pattern.match(file_name).group(2))
+
+
+def _3dgnome_model_detect_name_from_path(base_path: str) -> str:
+    # find any '.smooth.cif' file
+    model_file = next(
+        f
+        for f in os.listdir(base_path)
+        if f.endswith('.smooth.cif')
+    )
+
+    return _3dgnome_model_file_name_pattern.match(model_file).group(1)
 
 
 def _3dgnome_model_load(model_name: str, model_id: int, model_stream: Iterator[str]) -> ChromatinModel:
@@ -115,9 +126,15 @@ def load_3dgnome_model_from_filesystem(base_path: str, model_name: str, model_id
         )
 
 
-def load_3dgnome_model_ensemble_from_filesystem(base_path: str, model_name: str) -> ChromatinModelEnsemble:
+def load_3dgnome_model_ensemble_from_filesystem(base_path: str, model_name: Optional[str] = None) -> ChromatinModelEnsemble:
     if not os.path.exists(base_path):
         raise ValueError(f'Base path {base_path} does not exist')
+
+    if model_name is None:
+        model_name = _3dgnome_model_detect_name_from_path(base_path)
+        logger.info(f'Detected model name {model_name} from path')
+
+    model_ensemble_name = os.path.basename(base_path)
 
     model_files = [
         f
@@ -145,10 +162,13 @@ def load_3dgnome_model_ensemble_from_filesystem(base_path: str, model_name: str)
     )
 
     # noinspection PyTypeChecker
-    return ChromatinModelEnsemble(
+    model_ensemble = ChromatinModelEnsemble(
         name=model_name,
         format='cif',
         count=len(models),
         metadata_stack=metadata_stack,
         coordinates_stack=coordinates_stack
     )
+
+    logger.info(f'Loaded ensemble {model_ensemble_name} with {model_ensemble.count} models')
+    return model_ensemble.rename(model_ensemble_name)

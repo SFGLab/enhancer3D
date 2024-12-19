@@ -1,3 +1,4 @@
 *.tsv
 models/
+packed/
 distance_distributions*/
