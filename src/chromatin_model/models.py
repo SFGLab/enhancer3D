@@ -11,6 +11,9 @@ class ChromatinModel(BaseModel):
     id: int
     name: str
     format: str
+    first_bin: int
+    last_bin: int
+    resolution: int
     metadata: ChromatinModelMetadata
     coordinates: NDArray[Shape["*, 3"], np.float32]
 
@@ -18,6 +21,9 @@ class ChromatinModel(BaseModel):
 class ChromatinModelEnsembleHead(BaseModel):
     name: str
     format: str
+    first_bin: int
+    last_bin: int
+    resolution: int
     count: int
 
     metadata_stack: List[ChromatinModelMetadata]
@@ -26,6 +32,9 @@ class ChromatinModelEnsembleHead(BaseModel):
 class ChromatinModelEnsemble(BaseModel):
     name: str
     format: str
+    first_bin: int
+    last_bin: int
+    resolution: int
     count: int
 
     metadata_stack: List[ChromatinModelMetadata]
@@ -36,6 +45,9 @@ class ChromatinModelEnsemble(BaseModel):
         return ChromatinModelEnsembleHead(
             name=self.name,
             format=self.format,
+            first_bin=self.first_bin,
+            last_bin=self.last_bin,
+            resolution=self.resolution,
             count=self.count,
             metadata_stack=self.metadata_stack
         )
@@ -53,6 +65,9 @@ class ChromatinModelEnsemble(BaseModel):
             id=model_id,
             name=self.name,
             format=self.format,
+            first_bin=self.first_bin,
+            last_bin=self.last_bin,
+            resolution=self.resolution,
             metadata=metadata,
             coordinates=coordinates
         )
@@ -66,6 +81,9 @@ class ChromatinModelEnsemble(BaseModel):
         return ChromatinModelEnsemble(
             name=models[0].name,
             format=models[0].format,
+            first_bin=models[0].first_bin,
+            last_bin=models[0].last_bin,
+            resolution=models[0].resolution,
             count=len(models),
             metadata_stack=metadata_stack,
             coordinates_stack=coordinates_stack
@@ -77,6 +95,9 @@ class ChromatinModelEnsemble(BaseModel):
             name=head.name,
             format=head.format,
             count=head.count,
+            first_bin=head.first_bin,
+            last_bin=head.last_bin,
+            resolution=head.resolution,
             metadata_stack=head.metadata_stack,
             coordinates_stack=coordinates_stack
         )

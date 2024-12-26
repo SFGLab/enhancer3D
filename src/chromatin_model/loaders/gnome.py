@@ -3,14 +3,14 @@ import itertools
 import os
 import re
 from concurrent.futures import ThreadPoolExecutor
-from typing import List, Iterator, Optional
+from typing import List, Iterator, Optional, Tuple
 from utils.pandas_utils import DataFrameBufferedSink
 
 import numpy as np
 
 import logging
 
-from .models import ChromatinModel, ChromatinModelMetadata, ChromatinModelEnsemble
+from chromatin_model.models import ChromatinModel, ChromatinModelMetadata, ChromatinModelEnsemble
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -48,7 +48,7 @@ def _3dgnome_model_detect_name_from_path(base_path: str) -> str:
     return _3dgnome_model_file_name_pattern.match(model_file).group(1)
 
 
-def _3dgnome_model_load(model_name: str, model_id: int, model_stream: Iterator[str]) -> ChromatinModel:
+def _3dgnome_model_load(model_name: str, model_id: int, model_stream: Iterator[str]) -> Tuple[ChromatinModelMetadata, np.ndarray]:
     model_metadata: ChromatinModelMetadata = {}
     model_columns: List[str] = []
 
@@ -97,18 +97,29 @@ def _3dgnome_model_load(model_name: str, model_id: int, model_stream: Iterator[s
     )
 
     logger.info(f'Loaded model {model_name} {model_id} with {model_coordinates.shape[0]} coordinates')
-    return ChromatinModel(
-        id=model_id,
-        name=model_name,
-        format='cif',
-        metadata=model_metadata,
-        coordinates=model_coordinates
-    )
+    return model_metadata, model_coordinates
+
+
+def _3dgnome_model_bins_load(model_name: str, model_id: int, model_bins_stream: Iterator[str]) -> Tuple[int, int, int]:
+    bin_count = int(next(model_bins_stream))
+
+    _, _, _, first_bin_value = next(model_bins_stream).split()
+    first_bin_value = int(first_bin_value)
+
+    _, _, _, second_bin_value = next(model_bins_stream).split()
+    second_bin_value = int(second_bin_value)
+
+    resolution = second_bin_value - first_bin_value
+
+    last_bin_value = first_bin_value + (bin_count - 1) * resolution
+    return first_bin_value, last_bin_value, resolution
 
 
 def load_3dgnome_model_from_filesystem(base_path: str, model_name: str, model_id: int) -> ChromatinModel:
     if not os.path.exists(base_path):
         raise ValueError(f'Base path {base_path} does not exist')
+
+    logger.info(f'Loading model {model_name} {model_id}')
 
     model_file = f'loops_{model_name}_{model_id}.hcm.smooth.cif'
     model_path = os.path.join(base_path, model_file)
@@ -117,13 +128,37 @@ def load_3dgnome_model_from_filesystem(base_path: str, model_name: str, model_id
         raise ValueError(f'Model path {model_path} does not exist')
 
     with open(model_path, 'r') as model_fp:
-        logger.info(f'Loading model {model_name} {model_id}')
         model_fp_stream = iter(map(str.strip, model_fp))
-        return _3dgnome_model_load(
+        model_metadata, model_coordinates = _3dgnome_model_load(
             model_name=model_name,
             model_id=model_id,
             model_stream=model_fp_stream
         )
+
+    model_bins_file = f'loops_{model_name}_{model_id}.hcm.smooth.txt'
+    model_bins_path = os.path.join(base_path, model_bins_file)
+
+    if not os.path.exists(model_bins_path):
+        raise ValueError(f'Model bins path {model_bins_path} does not exist')
+
+    with open(model_bins_path, 'r') as model_bins_fp:
+        model_bins_fp_stream = iter(map(str.strip, model_bins_fp))
+        first_bin_value, last_bin_value, resolution = _3dgnome_model_bins_load(
+            model_name=model_name,
+            model_id=model_id,
+            model_bins_stream=model_bins_fp_stream
+        )
+
+    return ChromatinModel(
+        id=model_id,
+        name=model_name,
+        format='cif',
+        first_bin=first_bin_value,
+        last_bin=last_bin_value,
+        resolution=resolution,
+        metadata=model_metadata,
+        coordinates=model_coordinates
+    )
 
 
 def load_3dgnome_model_ensemble_from_filesystem(base_path: str, model_name: Optional[str] = None) -> ChromatinModelEnsemble:
@@ -166,6 +201,9 @@ def load_3dgnome_model_ensemble_from_filesystem(base_path: str, model_name: Opti
         name=model_name,
         format='cif',
         count=len(models),
+        first_bin=models[0].first_bin,
+        last_bin=models[0].last_bin,
+        resolution=models[0].resolution,
         metadata_stack=metadata_stack,
         coordinates_stack=coordinates_stack
     )
