@@ -72,6 +72,11 @@ class ChromatinModelEnsemble(BaseModel):
             coordinates=coordinates
         )
 
+    def distance_distribution(self, coordinates_bin_a: float, coordinates_bin_b: float):
+        ensemble_coordinates_a = self.coordinates_stack[:, coordinates_bin_a, :]
+        ensemble_coordinates_b = self.coordinates_stack[:, coordinates_bin_b, :]
+        return np.linalg.norm(ensemble_coordinates_a - ensemble_coordinates_b, axis=1)
+
     @staticmethod
     def from_models(models: List[ChromatinModel]) -> 'ChromatinModelEnsemble':
         metadata_stack = [m.metadata for m in models]

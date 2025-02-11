@@ -1,4 +1,6 @@
 *.tsv
+*.txt
+*.gtf
 models/
 packed/
 distance_distributions*/
