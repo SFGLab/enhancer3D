@@ -6,16 +6,17 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 from pybedtools import BedTool
+from scipy.stats import mannwhitneyu
 from typing_extensions import NamedTuple
 
 from chromatin_model import ChromatinModelEnsemble, load_chromatin_model_ensemble_from_filesystem
 from enhancer3d import ChromatinRegion, Enhancer3dProject, \
     load_enhancer_atlas_dataset_from_filesystem, load_gencode_annotation_dataset_from_filesystem, \
     hydrate_enhancer_dataset_with_ensemble_data, hydrate_gencode_dataset_with_ensemble_data
+from utils.pandas_utils import DataFrameBufferedSink
 
 logger = logging.getLogger(__name__)
 
-class
 
 class RegionalGenesAndEnhancersDataset(NamedTuple):
     enhancers_per_reference_region_dataset: pd.DataFrame
@@ -42,7 +43,6 @@ def extract_regional_genes_and_enhancers_for_ensemble(
 
     region_bed_ref = BedTool([(region_chr_ref, region_start_ref, region_end_ref)])
     region_bed_mod = BedTool([(region_chr_mod, region_start_mod, region_end_mod)])
-
 
     genes_bed_ref = BedTool.from_dataframe(
         hydrated_gencode_dataset
@@ -101,21 +101,23 @@ def extract_full_genes_and_enhancers_for_ensemble(
     resolution_ref = reference_ensemble.resolution
     resolution_mod = modification_ensemble.resolution
 
+    full_genes_mask = (
+        (hydrated_gencode_dataset.index.isin(regional_genes_and_enhancers_dataset.genes_per_reference_region_dataset['name']))
+        & (hydrated_gencode_dataset.index.isin(regional_genes_and_enhancers_dataset.genes_per_modification_region_dataset['name']))
+    )
     full_genes_for_region = (
         hydrated_gencode_dataset
-        .loc[
-            (hydrated_gencode_dataset.index.isin(regional_genes_and_enhancers_dataset.genes_per_reference_region_dataset['name']))
-            & (hydrated_gencode_dataset.index.isin(regional_genes_and_enhancers_dataset.genes_per_modification_region_dataset['name']))
-        ]
+        .loc[full_genes_mask]
         .astype({'gene_start_mod': 'int32', 'gene_end_mod': 'int32'})
     )
 
+    full_enhancers_mask = (
+        (hydrated_enhancer_dataset.index.isin(regional_genes_and_enhancers_dataset.enhancers_per_reference_region_dataset['name']))
+        & (hydrated_enhancer_dataset.index.isin(regional_genes_and_enhancers_dataset.enhancers_per_modification_region_dataset['name']))
+    )
     full_enhancers_for_region = (
         hydrated_enhancer_dataset
-        .loc[
-            (hydrated_enhancer_dataset.index.isin(regional_genes_and_enhancers_dataset.enhancers_per_reference_region_dataset['name']))
-            & (hydrated_enhancer_dataset.index.isin(regional_genes_and_enhancers_dataset.enhancers_per_modification_region_dataset['name']))
-        ]
+        .loc[full_enhancers_mask]
         .astype({'enh_start_mod': 'int32', 'enh_end_mod': 'int32'})
     )
 
@@ -195,13 +197,96 @@ def select_potential_enhances_gene_pairs(
     return potential_enhancer_gene_pairs
 
 
+def test_distances_for_significance(
+    reference_ensemble_distances: np.ndarray,
+    modification_ensemble_distances: np.ndarray,
+) -> Tuple[float, float]:
+    df_ref = pd.DataFrame(reference_ensemble_distances, columns=['distance'])
+    df_ref['sample'] = 'reference'
+
+    df_mut = pd.DataFrame(modification_ensemble_distances, columns=['distance'])
+    df_mut['sample'] = 'mutated'
+
+    df = pd.concat([df_ref, df_mut])
+
+    grouped = df.groupby('sample')['distance']
+    data_ref = grouped.get_group('reference')
+    data_mut = grouped.get_group('mutated')
+
+    result = mannwhitneyu(data_ref, data_mut, alternative='two-sided')
+    return result.pvalue, result.statistic
+
+
 def calculate_distances_for_potential_enhancer_gene_pairs(
+    reference_ensemble_region: ChromatinRegion,
+    modification_ensemble_region: ChromatinRegion,
     reference_ensemble: ChromatinModelEnsemble,
     modification_ensemble: ChromatinModelEnsemble,
     potential_enhancer_gene_pairs: pd.DataFrame
 ) -> pd.DataFrame:
-    # TODO: almost there
-    pass
+    distances_dataset_sink = DataFrameBufferedSink(columns=[
+        'region_chr_ref', 'region_start_ref', 'region_end_ref',
+        'region_chr_mod', 'region_start_mod', 'region_end_mod',
+        'gene_chr_ref', 'gene_start_ref', 'gene_end_ref', 'gene_strand',
+        'gene_chr_mod', 'gene_start_mod', 'gene_end_mod',
+        'gene_ensemble_ID', 'gene_hgnc_ID', 'gene_type', 'gene_info',
+        'gene_affected_by_svs',
+        'gene_model_position_ref', 'gene_model_coloring_start_ref', 'gene_model_coloring_end_ref',
+        'gene_model_position_mod', 'gene_model_coloring_start_mod', 'gene_model_coloring_end_mod',
+        'gene_TSS_pos',
+        'enh_chr_ref', 'enh_start_ref', 'enh_end_ref', 'enh_score',
+        'enh_affected_by_svs',
+        'region_name',
+        'enh_chr_mod', 'enh_start_mod', 'enh_end_mod',
+        'enh_center_position_ref', 'enh_center_position_mod',
+        'enh_model_position_ref', 'enh_model_position_mod',
+        'enh_model_coloring_start_ref', 'enh_model_coloring_end_ref',
+        'enh_model_coloring_start_mod', 'enh_model_coloring_end_mod',
+        'enh_center_pos', 'enh_loci',
+        'enh_tSS_distance',
+        'avg_dist_ref', 'avg_dist_mut', 'avg_dist_sub',
+        'mwh_pvalue', 'mwh_statistic',
+        'number_bins_ref', 'number_bins_mod'
+    ])
+
+    for _, potential_enhancer_gene_pair in potential_enhancer_gene_pairs.iterrows():
+        reference_ensemble_distances = reference_ensemble.distance_distribution(
+            potential_enhancer_gene_pair['gene_model_position_ref'],
+            potential_enhancer_gene_pair['enh_model_position_ref']
+        )
+
+        modification_ensemble_distances = modification_ensemble.distance_distribution(
+            potential_enhancer_gene_pair['gene_model_position_mod'],
+            potential_enhancer_gene_pair['enh_model_position_mod']
+        )
+
+        mwh_pvalue, mwh_statistic = test_distances_for_significance(
+            reference_ensemble_distances=reference_ensemble_distances,
+            modification_ensemble_distances=modification_ensemble_distances
+        )
+
+        reference_ensemble_average_distance = reference_ensemble_distances.mean()
+        modification_ensemble_average_distance = modification_ensemble_distances.mean()
+        average_distance_difference = abs(reference_ensemble_average_distance - modification_ensemble_average_distance)
+
+        distances_dataset_sink.write({
+            'region_chr_ref': reference_ensemble_region.chromosome,
+            'region_start_ref': reference_ensemble_region.start,
+            'region_end_ref': reference_ensemble_region.end,
+            'region_chr_mod': modification_ensemble_region.chromosome,
+            'region_start_mod': modification_ensemble_region.start,
+            'region_end_mod': modification_ensemble_region.end,
+            **potential_enhancer_gene_pair.to_dict(),
+            'avg_dist_ref': reference_ensemble_average_distance,
+            'avg_dist_mut': modification_ensemble_average_distance,
+            'avg_dist_sub': average_distance_difference,
+            'mwh_pvalue': mwh_pvalue,
+            'mwh_statistic': mwh_statistic,
+            'number_bins_ref': reference_ensemble.count,
+            'number_bins_mod': modification_ensemble.count
+        })
+
+    return distances_dataset_sink.df
 
 
 def run_distance_calculation_for_region(
