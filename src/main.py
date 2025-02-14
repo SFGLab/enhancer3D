@@ -201,19 +201,7 @@ def test_distances_for_significance(
     reference_ensemble_distances: np.ndarray,
     modification_ensemble_distances: np.ndarray,
 ) -> Tuple[float, float]:
-    df_ref = pd.DataFrame(reference_ensemble_distances, columns=['distance'])
-    df_ref['sample'] = 'reference'
-
-    df_mut = pd.DataFrame(modification_ensemble_distances, columns=['distance'])
-    df_mut['sample'] = 'mutated'
-
-    df = pd.concat([df_ref, df_mut])
-
-    grouped = df.groupby('sample')['distance']
-    data_ref = grouped.get_group('reference')
-    data_mut = grouped.get_group('mutated')
-
-    result = mannwhitneyu(data_ref, data_mut, alternative='two-sided')
+    result = mannwhitneyu(reference_ensemble_distances, modification_ensemble_distances, alternative='two-sided')
     return result.pvalue, result.statistic
 
 
