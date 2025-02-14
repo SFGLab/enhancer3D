@@ -58,12 +58,12 @@ if __name__ == "__main__":
         raise FileNotFoundError(f"Reference ensemble data path not found: {ensemble_data_path}")
 
     reference_ensemble = load_chromatin_model_ensemble_from_filesystem(
-        save_path=ensemble_data_path,
+        data_path=ensemble_data_path,
         model_name=args.reference_ensemble_name
     )
 
     modification_ensemble = load_chromatin_model_ensemble_from_filesystem(
-        save_path=ensemble_data_path,
+        data_path=ensemble_data_path,
         model_name=args.modification_ensemble_name
     )
 

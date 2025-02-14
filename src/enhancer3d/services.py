@@ -1,4 +1,5 @@
-from typing import NamedTuple, Tuple
+import os
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -6,9 +7,8 @@ from pybedtools import BedTool
 from scipy.stats import mannwhitneyu
 
 from chromatin_model import ChromatinModelEnsemble
-
-from models import ChromatinRegion, RegionalGenesAndEnhancersDataset, FullGenesAndEnhancersDataset
 from utils.pandas_utils import DataFrameBufferedSink
+from .models import ChromatinRegion, RegionalGenesAndEnhancersDataset, FullGenesAndEnhancersDataset
 
 
 def hydrate_enhancer_dataset_with_ensemble_data(
@@ -17,8 +17,10 @@ def hydrate_enhancer_dataset_with_ensemble_data(
     modification_ensemble: ChromatinModelEnsemble
 ) -> pd.DataFrame:
     # TODO: need proper algorithm for the hydration, for now assume we use the prepared files
+
+    data_path = os.environ.get('DATA_PATH', '.')
     hydrated_enhancer_dataset = pd.read_csv(
-        "./data/enhanceratlas2_liftovered_hg38_filtered_by_chrom_in_regions_GM12878_Deni_with_converted_regions.tsv",
+        os.path.join(data_path, "enhanceratlas2_liftovered_hg38_filtered_by_chrom_in_regions_GM12878_Deni_with_converted_regions.tsv"),
         sep="\t"
     )
 
@@ -42,8 +44,10 @@ def hydrate_gencode_dataset_with_ensemble_data(
     modification_ensemble: ChromatinModelEnsemble
 ) -> pd.DataFrame:
     # TODO: need proper algorithm for the hydration, for now assume we use the prepared files
+
+    data_path = os.environ.get('DATA_PATH', '.')
     return pd.read_csv(
-        "./data/gencode.v40.annotation_genes_converted_in_regions_GM12878_Deni_with_mod_regions_labelled.tsv",
+        os.path.join(data_path, "gencode.v40.annotation_genes_converted_in_regions_GM12878_Deni_with_mod_regions_labelled.tsv"),
         sep="\t"
     )
 

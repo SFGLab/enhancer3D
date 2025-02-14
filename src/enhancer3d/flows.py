@@ -39,7 +39,9 @@ def run_distance_calculation_for_region(
         reference_ensemble_region=project.reference_ensemble_region,
         modification_ensemble_region=project.modification_ensemble_region,
         reference_ensemble=reference_ensemble,
-        modification_ensemble=modification_ensemble
+        modification_ensemble=modification_ensemble,
+        hydrated_enhancer_dataset=hydrated_enhancer_dataset,
+        hydrated_gencode_dataset=hydrated_gencode_dataset
     )
 
     logger.info("Extracting full genes and enhancers for the reference and modification ensembles")
