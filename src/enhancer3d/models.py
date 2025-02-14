@@ -1,3 +1,6 @@
+from typing import NamedTuple
+
+import pandas as pd
 from pydantic import BaseModel
 
 
@@ -95,3 +98,15 @@ class Enhancer3dProject(BaseModel):
     cell_line: str
     reference_ensemble_region: ChromatinRegion
     modification_ensemble_region: ChromatinRegion
+
+
+class RegionalGenesAndEnhancersDataset(NamedTuple):
+    enhancers_per_reference_region_dataset: pd.DataFrame
+    genes_per_reference_region_dataset: pd.DataFrame
+    enhancers_per_modification_region_dataset: pd.DataFrame
+    genes_per_modification_region_dataset: pd.DataFrame
+
+
+class FullGenesAndEnhancersDataset(NamedTuple):
+    full_enhancers_for_region: pd.DataFrame
+    full_genes_for_region: pd.DataFrame
