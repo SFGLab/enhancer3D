@@ -166,7 +166,7 @@ def prepare_genes_enhancer_per_region(region_chr, first_bin_coord_ref, last_bin_
 
 
 def path_to_data_region(data_dir_path, c, p, region_ref, region_mod):
-    return f'{data_dir_path}/{c}/{p}/models3D_{c}_{p}/models3D_{c}_{p}/results_{c}_{p}_{region_ref}', f'{data_dir_path}/{c}/{p}/models3D_{c}_{p}/models3D_{c}_{p}_mod/results_{c}_{p}_{region_ref}'
+    return f'{data_dir_path}/models/models3D_{c}_{p}/results_{c}_{p}_{region_ref}', f'{data_dir_path}/models/models3D_{c}_{p}_mod/results_{c}_{p}_mod_{region_mod}'
 
 
 def process_row(row_gene, coordinates_array_ref, coordinates_array_mod, region_chr_ref, region_start_ref, region_end_ref, region_chr_mod, region_start_mod, region_end_mod):
@@ -191,11 +191,11 @@ def process_row(row_gene, coordinates_array_ref, coordinates_array_mod, region_c
 
 
 def run_calculate_distance(c, p, region_ref, region_mod, models_in_ensemble, data_dir_path):
-    dir_path_ref = f'{data_dir_path}/{c}/{p}/models3D_{c}_{p}/models3D_{c}_{p}/results_{c}_{p}_{region_ref}'
-    dir_path_mod = f'{data_dir_path}/{c}/{p}/models3D_{c}_{p}/models3D_{c}_{p}_mod/results_{c}_{p}_{region_mod}'
+    dir_path_ref = f'{data_dir_path}/models/models3D_{c}_{p}/results_{c}_{p}_{region_ref}'
+    dir_path_mod = f'{data_dir_path}/models/models3D_{c}_{p}_mod/results_{c}_{p}_mod_{region_mod}'
 
-    enhancers = pd.read_csv(f'{data_dir_path}/{c}/{p}/enhanceratlas2_liftovered_hg38_filtered_by_chrom_in_regions_{c}_{p}_with_converted_regions.tsv', sep='\t')
-    genes = pd.read_csv(f'{data_dir_path}/{c}/{p}/gencode.v40.annotation_genes_converted_in_regions_{c}_{p}_with_mod_regions_labelled.tsv', sep='\t')
+    enhancers = pd.read_csv(f'{data_dir_path}/enhanceratlas2_liftovered_hg38_filtered_by_chrom_in_regions_{c}_{p}_with_converted_regions.tsv', sep='\t')
+    genes = pd.read_csv(f'{data_dir_path}/gencode.v40.annotation_genes_converted_in_regions_{c}_{p}_with_mod_regions_labelled.tsv', sep='\t')
 
     genes_bed_ref = BedTool.from_dataframe(genes.loc[genes['gene_affected_by_svs'].isna()].reset_index()[
                                                ['gene_chr_ref', 'gene_start_ref', 'gene_end_ref', 'index']])
@@ -288,7 +288,7 @@ def run_calculate_distance(c, p, region_ref, region_mod, models_in_ensemble, dat
 
     df_results.rename(columns={'gene_id': 'gene_ensemble_ID', 'gene_name': 'gene_hgnc_ID', 'score': 'enh_score'}, inplace=True)
 
-    data_dir_path_to_results = f'{data_dir_path}/{c}/{p}/distance_distributions_{c}_{p}/distance_distributions_{c}_{p}_{region_ref}'
+    data_dir_path_to_results = f'{data_dir_path}/distance_distributions_{c}_{p}/distance_distributions_{c}_{p}_{region_ref}'
 
     os.makedirs(data_dir_path_to_results, exist_ok=True)
 

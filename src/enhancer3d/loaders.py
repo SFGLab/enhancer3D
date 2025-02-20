@@ -15,7 +15,6 @@ def load_enhancer_atlas_dataset_from_filesystem(data_path: str,dataset_name: str
 
 def load_gencode_annotation_dataset_from_filesystem(data_path: str,dataset_name: str) -> pd.DataFrame:
     return pr.read_gff(
-        f=os.path.join(data_path, f"{dataset_name}.gtf"),
-        as_df=True,
+        os.path.join(data_path, f"{dataset_name}.gtf"),
         ignore_bad=True
     )

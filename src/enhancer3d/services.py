@@ -1,5 +1,9 @@
+import functools
 import os
-from typing import Tuple
+from concurrent.futures.process import ProcessPoolExecutor
+from concurrent.futures.thread import ThreadPoolExecutor
+from itertools import batched
+from typing import Tuple, Dict, Any, List
 
 import numpy as np
 import pandas as pd
@@ -244,23 +248,7 @@ def calculate_distances_for_potential_enhancer_gene_pairs(
     distances_dataset_sink = DataFrameBufferedSink(columns=[
         'region_chr_ref', 'region_start_ref', 'region_end_ref',
         'region_chr_mod', 'region_start_mod', 'region_end_mod',
-        'gene_chr_ref', 'gene_start_ref', 'gene_end_ref', 'gene_strand',
-        'gene_chr_mod', 'gene_start_mod', 'gene_end_mod',
-        'gene_ensemble_ID', 'gene_hgnc_ID', 'gene_type', 'gene_info',
-        'gene_affected_by_svs',
-        'gene_model_position_ref', 'gene_model_coloring_start_ref', 'gene_model_coloring_end_ref',
-        'gene_model_position_mod', 'gene_model_coloring_start_mod', 'gene_model_coloring_end_mod',
-        'gene_TSS_pos',
-        'enh_chr_ref', 'enh_start_ref', 'enh_end_ref', 'enh_score',
-        'enh_affected_by_svs',
-        'region_name',
-        'enh_chr_mod', 'enh_start_mod', 'enh_end_mod',
-        'enh_center_position_ref', 'enh_center_position_mod',
-        'enh_model_position_ref', 'enh_model_position_mod',
-        'enh_model_coloring_start_ref', 'enh_model_coloring_end_ref',
-        'enh_model_coloring_start_mod', 'enh_model_coloring_end_mod',
-        'enh_center_pos', 'enh_loci',
-        'enh_tSS_distance',
+        *potential_enhancer_gene_pairs.columns,
         'avg_dist_ref', 'avg_dist_mut', 'avg_dist_sub',
         'mwh_pvalue', 'mwh_statistic',
         'number_bins_ref', 'number_bins_mod'
