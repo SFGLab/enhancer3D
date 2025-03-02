@@ -1,0 +1,43 @@
+services:
+    bucket:
+        image: minio/minio:latest
+        expose:
+            - "9000"
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        volumes:
+            - minio_data:/data
+        environment:
+            MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+        networks:
+            - enhancer3d-network
+
+    mongo:
+        image: mongo:${MONGO_VERSION}
+        container_name: mongo
+        expose:
+            - "27017"
+        healthcheck:
+            test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        volumes:
+            - mongo_data:/data/db
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+        networks:
+            - enhancer3d-network
+
+networks:
+    enhancer3d-network:
+        driver: bridge
+
+volumes:
+    minio_data:
+    mongo_data:
