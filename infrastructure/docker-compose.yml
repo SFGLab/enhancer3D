@@ -1,6 +1,7 @@
 services:
     bucket:
         image: minio/minio:${MINIO_VERSION}
+        command: ["server", "/data"]
         expose:
             - "9000"
         healthcheck:
