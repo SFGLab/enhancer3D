@@ -2,7 +2,16 @@ services:
     bucket:
         ports:
             - "9000:9000"
+            - "9001:9001"
 
     mongo:
         ports:
             - "27017:27017"
+
+    temporal:
+        ports:
+            - "7233:7233"
+
+    temporal_ui:
+        ports:
+            - "8080:8080"

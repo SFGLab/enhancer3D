@@ -1,9 +1,10 @@
 services:
     bucket:
         image: minio/minio:${MINIO_VERSION}
-        command: ["server", "/data"]
+        command: ["server", "/data", "--address", ":9000", "--console-address", ":9001"]
         expose:
             - "9000"
+            - "9001"
         healthcheck:
             test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
             interval: 10s
@@ -12,8 +13,8 @@ services:
         volumes:
             - minio_data:/data
         environment:
-            MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+            - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+            - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
         networks:
             - enhancer3d-network
 
@@ -30,10 +31,89 @@ services:
         volumes:
             - mongo_data:/data/db
         environment:
-            MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+            - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
         networks:
             - enhancer3d-network
+
+    temporal_elasticsearch:
+        image: elasticsearch:${ELASTICSEARCH_VERSION}
+        expose:
+            - "9200"
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9200"]
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        volumes:
+            - temporal_elasticsearch_data:/var/lib/elasticsearch/data
+        environment:
+            - cluster.routing.allocation.disk.threshold_enabled=true
+            - cluster.routing.allocation.disk.watermark.low=512mb
+            - cluster.routing.allocation.disk.watermark.high=256mb
+            - cluster.routing.allocation.disk.watermark.flood_stage=128mb
+            - discovery.type=single-node
+            - ES_JAVA_OPTS=-Xms256m -Xmx256m
+            - xpack.security.enabled=false
+        networks:
+            - enhancer3d-network
+
+    temporal_postresql:
+        image: postgres:${POSTGRES_VERSION}
+        expose:
+            - "5432"
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        volumes:
+            - temporal_postgresql_data:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            - POSTGRES_DB=${POSTGRES_DB}
+        networks:
+            - enhancer3d-network
+
+    temporal:
+        image: temporalio/auto-setup:${TEMPORAL_VERSION}
+        expose:
+            - "7233"
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:7233/health"]
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        volumes:
+            - ./config/temporal:/etc/temporal/config/dynamicconfig
+        environment:
+            - DB=postgres12
+            - DB_PORT=5432
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PWD=${POSTGRES_PASSWORD}
+            - POSTGRES_SEEDS=temporal_postresql
+            - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/deployment.yml
+            - ENABLE_ES=true
+            - ES_SEEDS=temporal_elasticsearch
+            - ES_VERSION=v7
+        networks:
+            - enhancer3d-network
+        depends_on:
+            - temporal_postresql
+            - temporal_elasticsearch
+
+    temporal_ui:
+        image: temporalio/ui:${TEMPORAL_UI_VERSION}
+        expose:
+            - "8080"
+        environment:
+            - TEMPORAL_ADDRESS=temporal:7233
+            - TEMPORAL_CORS_ORIGINS=${TEMPORAL_CORS_ORIGINS}
+        networks:
+            - enhancer3d-network
+        depends_on:
+            - temporal
 
 networks:
     enhancer3d-network:
@@ -42,3 +122,5 @@ networks:
 volumes:
     minio_data:
     mongo_data:
+    temporal_elasticsearch_data:
+    temporal_postgresql_data:
