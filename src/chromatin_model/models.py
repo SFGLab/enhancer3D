@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 import numpy as np
 from pydantic import BaseModel
@@ -11,6 +11,7 @@ class ChromatinModel(BaseModel):
     id: int
     name: str
     format: str
+    author: Optional[str] = None
     first_bin: int
     last_bin: int
     resolution: int
@@ -21,6 +22,7 @@ class ChromatinModel(BaseModel):
 class ChromatinModelEnsembleHead(BaseModel):
     name: str
     format: str
+    author: Optional[str] = None
     first_bin: int
     last_bin: int
     resolution: int
@@ -32,6 +34,7 @@ class ChromatinModelEnsembleHead(BaseModel):
 class ChromatinModelEnsemble(BaseModel):
     name: str
     format: str
+    author: Optional[str] = None
     first_bin: int
     last_bin: int
     resolution: int
@@ -45,6 +48,7 @@ class ChromatinModelEnsemble(BaseModel):
         return ChromatinModelEnsembleHead(
             name=self.name,
             format=self.format,
+            author=self.author,
             first_bin=self.first_bin,
             last_bin=self.last_bin,
             resolution=self.resolution,
@@ -65,6 +69,7 @@ class ChromatinModelEnsemble(BaseModel):
             id=model_id,
             name=self.name,
             format=self.format,
+            author=self.author,
             first_bin=self.first_bin,
             last_bin=self.last_bin,
             resolution=self.resolution,
@@ -86,6 +91,7 @@ class ChromatinModelEnsemble(BaseModel):
         return ChromatinModelEnsemble(
             name=models[0].name,
             format=models[0].format,
+            author=models[0].author,
             first_bin=models[0].first_bin,
             last_bin=models[0].last_bin,
             resolution=models[0].resolution,
@@ -99,6 +105,7 @@ class ChromatinModelEnsemble(BaseModel):
         return ChromatinModelEnsemble(
             name=head.name,
             format=head.format,
+            author=head.author,
             count=head.count,
             first_bin=head.first_bin,
             last_bin=head.last_bin,

@@ -4,6 +4,9 @@ import os
 import re
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Iterator, Optional, Tuple
+
+from fsspec import AbstractFileSystem
+
 from utils.pandas_utils import DataFrameBufferedSink
 
 import numpy as np
@@ -115,8 +118,8 @@ def _3dgnome_model_bins_load(model_name: str, model_id: int, model_bins_stream: 
     return first_bin_value, last_bin_value, resolution
 
 
-def load_3dgnome_model_from_filesystem(base_path: str, model_name: str, model_id: int) -> ChromatinModel:
-    if not os.path.exists(base_path):
+def load_3dgnome_model_from_filesystem(fs: AbstractFileSystem, base_path: str, model_name: str, model_id: int) -> ChromatinModel:
+    if not fs.exists(base_path):
         raise ValueError(f'Base path {base_path} does not exist')
 
     logger.info(f'Loading model {model_name} {model_id}')
@@ -124,10 +127,10 @@ def load_3dgnome_model_from_filesystem(base_path: str, model_name: str, model_id
     model_file = f'loops_{model_name}_{model_id}.hcm.smooth.cif'
     model_path = os.path.join(base_path, model_file)
 
-    if not os.path.exists(model_path):
+    if not fs.exists(model_path):
         raise ValueError(f'Model path {model_path} does not exist')
 
-    with open(model_path, 'r') as model_fp:
+    with fs.open(model_path, 'r') as model_fp:
         model_fp_stream = iter(map(str.strip, model_fp))
         model_metadata, model_coordinates = _3dgnome_model_load(
             model_name=model_name,
@@ -138,10 +141,10 @@ def load_3dgnome_model_from_filesystem(base_path: str, model_name: str, model_id
     model_bins_file = f'loops_{model_name}_{model_id}.hcm.smooth.txt'
     model_bins_path = os.path.join(base_path, model_bins_file)
 
-    if not os.path.exists(model_bins_path):
+    if not fs.exists(model_bins_path):
         raise ValueError(f'Model bins path {model_bins_path} does not exist')
 
-    with open(model_bins_path, 'r') as model_bins_fp:
+    with fs.open(model_bins_path, 'r') as model_bins_fp:
         model_bins_fp_stream = iter(map(str.strip, model_bins_fp))
         first_bin_value, last_bin_value, resolution = _3dgnome_model_bins_load(
             model_name=model_name,
@@ -152,7 +155,7 @@ def load_3dgnome_model_from_filesystem(base_path: str, model_name: str, model_id
     return ChromatinModel(
         id=model_id,
         name=model_name,
-        format='cif',
+        format='3dgnome',
         first_bin=first_bin_value,
         last_bin=last_bin_value,
         resolution=resolution,
@@ -161,8 +164,8 @@ def load_3dgnome_model_from_filesystem(base_path: str, model_name: str, model_id
     )
 
 
-def load_3dgnome_model_ensemble_from_filesystem(base_path: str, model_name: Optional[str] = None) -> ChromatinModelEnsemble:
-    if not os.path.exists(base_path):
+def load_3dgnome_model_ensemble_from_filesystem(fs: AbstractFileSystem, base_path: str, model_name: Optional[str] = None) -> ChromatinModelEnsemble:
+    if not fs.exists(base_path):
         raise ValueError(f'Base path {base_path} does not exist')
 
     if model_name is None:
@@ -173,7 +176,7 @@ def load_3dgnome_model_ensemble_from_filesystem(base_path: str, model_name: Opti
 
     model_files = [
         f
-        for f in os.listdir(base_path)
+        for f in fs.listdir(base_path)
         if f.startswith(f'loops_{model_name}_') and f.endswith('.smooth.cif')
     ]
 
@@ -185,7 +188,7 @@ def load_3dgnome_model_ensemble_from_filesystem(base_path: str, model_name: Opti
     with ThreadPoolExecutor() as executor:
         logger.info(f'Loading {len(model_ids)} models for {model_name}')
         models = list(executor.map(
-            functools.partial(load_3dgnome_model_from_filesystem, base_path, model_name),
+            functools.partial(load_3dgnome_model_from_filesystem, fs, base_path, model_name),
             model_ids
         ))
 
@@ -199,7 +202,7 @@ def load_3dgnome_model_ensemble_from_filesystem(base_path: str, model_name: Opti
     # noinspection PyTypeChecker
     model_ensemble = ChromatinModelEnsemble(
         name=model_name,
-        format='cif',
+        format='3dgnome',
         count=len(models),
         first_bin=models[0].first_bin,
         last_bin=models[0].last_bin,

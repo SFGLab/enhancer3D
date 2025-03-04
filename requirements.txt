@@ -6,3 +6,5 @@ notebook==7.3.2
 pydantic==2.10.6
 numpydantic==1.6.7
 pyranges1==1.0.3
+s3fs==2025.2.0
+fsspec~=2025.2.0
