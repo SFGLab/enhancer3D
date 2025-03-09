@@ -96,15 +96,12 @@ class Enhancer3dProject(BaseModel):
     name: str
     species: str
     cell_line: str
-    reference_ensemble_region: ChromatinRegion
-    modification_ensemble_region: ChromatinRegion
+    ensemble_region: ChromatinRegion
 
 
 class RegionalGenesAndEnhancersDataset(NamedTuple):
-    enhancers_per_reference_region_dataset: pd.DataFrame
-    genes_per_reference_region_dataset: pd.DataFrame
-    enhancers_per_modification_region_dataset: pd.DataFrame
-    genes_per_modification_region_dataset: pd.DataFrame
+    enhancers_per_ensemble_region_dataset: pd.DataFrame
+    genes_per_ensemble_region_dataset: pd.DataFrame
 
 
 class FullGenesAndEnhancersDataset(NamedTuple):
