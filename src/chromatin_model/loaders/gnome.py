@@ -40,12 +40,12 @@ def _3dgnome_model_extract_id_from_file_name(file_name: str) -> int:
     return int(_3dgnome_model_file_name_pattern.match(file_name).group(2))
 
 
-def _3dgnome_model_detect_name_from_path(base_path: str) -> str:
+def _3dgnome_model_detect_name_from_path(fs: AbstractFileSystem, base_path: str) -> str:
     # find any '.smooth.cif' file
     model_file = next(
-        f
-        for f in os.listdir(base_path)
-        if f.endswith('.smooth.cif')
+        os.path.basename(f)
+        for f in fs.listdir(base_path, detail=False)
+        if os.path.basename(f).endswith('.smooth.cif')
     )
 
     return _3dgnome_model_file_name_pattern.match(model_file).group(1)
@@ -169,15 +169,15 @@ def load_3dgnome_model_ensemble_from_filesystem(fs: AbstractFileSystem, base_pat
         raise ValueError(f'Base path {base_path} does not exist')
 
     if model_name is None:
-        model_name = _3dgnome_model_detect_name_from_path(base_path)
+        model_name = _3dgnome_model_detect_name_from_path(fs, base_path)
         logger.info(f'Detected model name {model_name} from path')
 
     model_ensemble_name = os.path.basename(base_path)
 
     model_files = [
-        f
-        for f in fs.listdir(base_path)
-        if f.startswith(f'loops_{model_name}_') and f.endswith('.smooth.cif')
+        os.path.basename(f)
+        for f in fs.listdir(base_path, detail=False)
+        if os.path.basename(f).startswith(f'loops_{model_name}_') and os.path.basename(f).endswith('.smooth.cif')
     ]
 
     model_ids = [

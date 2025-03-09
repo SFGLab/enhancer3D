@@ -1,15 +1,29 @@
-import os
+import asyncio
+import logging
+from concurrent.futures import ThreadPoolExecutor
 
-from utils.filesystem_utils import get_bucket_filesystem
+import dotenv
+
+from repacker.activities import repack_3dgnome_model_ensemble_from_bucket
+from repacker.workflows import Repack3dgnomeModelEnsembleWorkflow
+from utils.temporal_utils import get_temporal_worker
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
-def main() -> None:
-    bucket_fs = get_bucket_filesystem()
-    gnome_bucket = os.environ.get("GNOME_BUCKET", "3dgnome-landing-zone")
-    model_repository_bucket = os.environ.get("MODEL_REPOSITORY_BUCKET", "model-repository")
+async def main() -> None:
+    with ThreadPoolExecutor() as executor:
+        temporal_worker = await get_temporal_worker(
+            executor=executor,
+            task_queue="repacker-task-queue",
+            activities=[repack_3dgnome_model_ensemble_from_bucket],
+            workflows=[Repack3dgnomeModelEnsembleWorkflow],
+        )
 
-
+        await temporal_worker.run()
 
 
 if __name__ == '__main__':
-    main()
+    dotenv.load_dotenv()
+    asyncio.run(main())
