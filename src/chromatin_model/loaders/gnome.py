@@ -99,7 +99,7 @@ def _3dgnome_model_load(model_name: str, model_id: int, model_stream: Iterator[s
         .to_numpy()
     )
 
-    logger.info(f'Loaded model {model_name} {model_id} with {model_coordinates.shape[0]} coordinates')
+    logger.debug(f'Loaded model {model_name} {model_id} with {model_coordinates.shape[0]} coordinates')
     return model_metadata, model_coordinates
 
 
@@ -122,7 +122,7 @@ def load_3dgnome_model_from_filesystem(fs: AbstractFileSystem, base_path: str, m
     if not fs.exists(base_path):
         raise ValueError(f'Base path {base_path} does not exist')
 
-    logger.info(f'Loading model {model_name} {model_id}')
+    logger.debug(f'Loading model {model_name} {model_id}')
 
     model_file = f'loops_{model_name}_{model_id}.hcm.smooth.cif'
     model_path = os.path.join(base_path, model_file)
@@ -170,7 +170,7 @@ def load_3dgnome_model_ensemble_from_filesystem(fs: AbstractFileSystem, base_pat
 
     if model_name is None:
         model_name = _3dgnome_model_detect_name_from_path(fs, base_path)
-        logger.info(f'Detected model name {model_name} from path')
+        logger.debug(f'Detected model name {model_name} from path')
 
     model_ensemble_name = os.path.basename(base_path)
 
@@ -186,7 +186,7 @@ def load_3dgnome_model_ensemble_from_filesystem(fs: AbstractFileSystem, base_pat
     ]
 
     with ThreadPoolExecutor() as executor:
-        logger.info(f'Loading {len(model_ids)} models for {model_name}')
+        logger.debug(f'Loading {len(model_ids)} models for {model_name}')
         models = list(executor.map(
             functools.partial(load_3dgnome_model_from_filesystem, fs, base_path, model_name),
             model_ids

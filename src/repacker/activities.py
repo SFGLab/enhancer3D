@@ -1,4 +1,5 @@
 import functools
+import logging
 import os
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import Set
@@ -9,6 +10,8 @@ from temporalio import activity
 from chromatin_model.services import repack_3dgnome_model_ensemble
 from repacker.models import Repack3dgnomeModelEnsembleActivityInput, ListAllModelsInBucketActivityInput, ListAllModelsInBucketActivityOutput
 from utils.filesystem_utils import get_bucket_filesystem
+
+logger = logging.getLogger(__name__)
 
 
 @activity.defn
@@ -24,7 +27,7 @@ def repack_3dgnome_model_ensemble_from_bucket(input: Repack3dgnomeModelEnsembleA
         else model_repository_bucket
     )
 
-    activity.logger.info(f"Repacking 3D-GNOME model ensemble from {source_data_path_with_bucket} to {target_data_path_with_bucket}")
+    logger.info(f"Repacking 3D-GNOME model ensemble from {source_data_path_with_bucket} to {target_data_path_with_bucket}")
     repack_3dgnome_model_ensemble(
         fs=bucket_fs,
         source_data_path=source_data_path_with_bucket,
@@ -32,7 +35,7 @@ def repack_3dgnome_model_ensemble_from_bucket(input: Repack3dgnomeModelEnsembleA
         source_model_name=input.source_model_name,
     )
 
-    activity.logger.info(f"Repacking complete")
+    logger.info(f"Repacking complete")
 
 
 @activity.defn
@@ -45,7 +48,7 @@ def list_all_models_in_bucket(input: ListAllModelsInBucketActivityInput) -> List
     if not base_paths_with_bucket:
         base_paths_with_bucket = [gnome_bucket]
 
-    activity.logger.info(f"Listing all models in bucket for {base_paths_with_bucket}")
+    logger.info(f"Listing all models in bucket for {base_paths_with_bucket}")
 
     # Walk the base path to find all model paths
     def walk_model_base_path(fs: AbstractFileSystem, base_path: str) -> Set[str]:
@@ -66,5 +69,5 @@ def list_all_models_in_bucket(input: ListAllModelsInBucketActivityInput) -> List
     # Remove the bucket prefix from the model paths
     model_paths = list(map(lambda model_path: model_path.replace(f"{gnome_bucket}/", ""), model_paths))
 
-    activity.logger.info(f"Found {len(model_paths)} models in bucket")
+    logger.info(f"Found {len(model_paths)} models in bucket")
     return ListAllModelsInBucketActivityOutput(model_paths=model_paths)
