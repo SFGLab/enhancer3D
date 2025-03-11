@@ -7,12 +7,30 @@ import pandas as pd
 from temporalio import activity
 
 from calculator.loaders import load_enhancer_atlas_dataset_from_filesystem, load_gencode_annotation_dataset_from_filesystem
-from calculator.models import FindPotentialPairsOfEnhancersPromotersForProjectActivityInput, FindPotentialPairsOfEnhancersPromotersForProjectActivityOutput, CalculateDistancesForEnhancerPromotersChunkActivityInput, CalculateDistancesForEnhancerPromotersChunkActivityOutput
+from calculator.models import FindPotentialPairsOfEnhancersPromotersForProjectActivityInput, FindPotentialPairsOfEnhancersPromotersForProjectActivityOutput, CalculateDistancesForEnhancerPromotersChunkActivityInput, CalculateDistancesForEnhancerPromotersChunkActivityOutput, UpsertProjectConfigurationActivityInput
 from chromatin_model.loaders.packed import load_chromatin_model_ensemble_from_filesystem
 from distance_calculation.services import hydrate_enhancer_dataset_with_ensemble_data, hydrate_gencode_dataset_with_ensemble_data, extract_regional_genes_and_enhancers_for_ensemble, extract_full_genes_and_enhancers_for_ensemble, select_potential_enhances_gene_pairs, calculate_distances_for_potential_enhancer_gene_pairs
 from utils.filesystem_utils import get_bucket_filesystem
 
 logger = logging.getLogger(__name__)
+
+
+@activity.defn
+def upsert_project_configuration(input: UpsertProjectConfigurationActivityInput) -> None:
+    bucket_fs = get_bucket_filesystem()
+
+    processing_bucket = os.getenv("PROCESSING_BUCKET", "processing")
+
+    project = input.project
+    configuration = input.configuration
+
+    with bucket_fs.open(os.path.join(processing_bucket, "projects", project.name, "configuration.json"), "w") as f:
+        f.write(configuration.model_dump_json(indent=4))
+
+    with bucket_fs.open(os.path.join(processing_bucket, "projects", project.name, "project.json"), "w") as f:
+        f.write(project.model_dump_json(indent=4))
+
+    return None
 
 
 @activity.defn
@@ -27,19 +45,21 @@ def find_potential_pairs_of_enhancers_promoters_for_project(input: FindPotential
     gencode_annotation_dataset_path = os.path.join(processing_bucket, "gencode")
 
     project = input.project
+    configuration = input.configuration
+
     project_enhancer_promoter_chunks_path = os.path.join(processing_bucket, "projects", project.name, "enhancer_promoter_pairs")
     logger.info(f"Starting Enhancer3D project {project}, chunks will be output to {project_enhancer_promoter_chunks_path}")
 
     enhancer_atlas_dataset = load_enhancer_atlas_dataset_from_filesystem(
         bucket_fs,
         enhancer_atlas_dataset_path,
-        input.enhancer_atlas_dataset_name
+        configuration.enhancer_atlas_dataset_name
     )
 
     gencode_annotation_dataset = load_gencode_annotation_dataset_from_filesystem(
         bucket_fs,
         gencode_annotation_dataset_path,
-        input.gencode_annotation_dataset_name
+        configuration.gencode_annotation_dataset_name
     )
 
     ensemble = load_chromatin_model_ensemble_from_filesystem(
@@ -75,17 +95,17 @@ def find_potential_pairs_of_enhancers_promoters_for_project(input: FindPotential
         regional_genes_and_enhancers_dataset=regional_genes_and_enhancers_dataset
     )
 
-    logger.info(f"Joining enhancers and genes together, base_pair_linear_distance_threshold={input.base_pair_linear_distance_threshold}")
+    logger.info(f"Joining enhancers and genes together, base_pair_linear_distance_threshold={configuration.base_pair_linear_distance_threshold}")
     potential_enhancer_gene_pairs = select_potential_enhances_gene_pairs(
         full_genes_and_enhancers_dataset=full_genes_and_enhancers_dataset,
-        base_pair_linear_distance_threshold=input.base_pair_linear_distance_threshold
+        base_pair_linear_distance_threshold=configuration.base_pair_linear_distance_threshold
     )
 
     # Partition the potential enhancer-gene pairs into chunks and write them to the filesystem as binary files
     bucket_fs.makedirs(project_enhancer_promoter_chunks_path, exist_ok=True)
     chunked_potential_enhancer_gene_pairs = [
-        (i, potential_enhancer_gene_pairs.iloc[i:i + input.enhancer_promoter_pairs_chunk_size])
-        for i in range(0, len(potential_enhancer_gene_pairs), input.enhancer_promoter_pairs_chunk_size)
+        (i // configuration.enhancer_promoter_pairs_chunk_size, potential_enhancer_gene_pairs[i:i + configuration.enhancer_promoter_pairs_chunk_size])
+        for i in range(0, len(potential_enhancer_gene_pairs), configuration.enhancer_promoter_pairs_chunk_size)
     ]
 
     logger.info(f"Writing enhancer-promoter pairs to the filesystem, {len(chunked_potential_enhancer_gene_pairs)} chunks")

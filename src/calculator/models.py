@@ -2,15 +2,17 @@ from typing import Optional, List
 
 from pydantic import BaseModel
 
-from common.models import Enhancer3dProject
+from common.models import Enhancer3dProject, Enhancer3dProjectConfiguration
+
+
+class UpsertProjectConfigurationActivityInput(BaseModel):
+    project: Enhancer3dProject
+    configuration: Enhancer3dProjectConfiguration
 
 
 class FindPotentialPairsOfEnhancersPromotersForProjectActivityInput(BaseModel):
     project: Enhancer3dProject
-    enhancer_atlas_dataset_name: str
-    gencode_annotation_dataset_name: str
-    base_pair_linear_distance_threshold: Optional[int] = None
-    enhancer_promoter_pairs_chunk_size: int = 1000
+    configuration: Enhancer3dProjectConfiguration
 
 
 class FindPotentialPairsOfEnhancersPromotersForProjectActivityOutput(BaseModel):
@@ -28,10 +30,7 @@ class CalculateDistancesForEnhancerPromotersChunkActivityOutput(BaseModel):
 
 class CalculateDistancesForProjectWorkflowInput(BaseModel):
     project: Enhancer3dProject
-    enhancer_atlas_dataset_name: str
-    gencode_annotation_dataset_name: str
-    base_pair_linear_distance_threshold: Optional[int] = None
-    enhancer_promoter_pairs_chunk_size: int = 1000
+    configuration: Enhancer3dProjectConfiguration
 
 
 class CalculateDistancesForProjectWorkflowOutput(BaseModel):

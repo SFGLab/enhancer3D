@@ -3,11 +3,11 @@ from datetime import timedelta
 
 from temporalio import workflow
 
-from calculator.models import CalculateDistancesForProjectWorkflowInput, CalculateDistancesForProjectWorkflowOutput, CalculateDistancesForEnhancerPromotersChunkActivityInput, FindPotentialPairsOfEnhancersPromotersForProjectActivityInput
+from calculator.models import CalculateDistancesForProjectWorkflowInput, CalculateDistancesForProjectWorkflowOutput, CalculateDistancesForEnhancerPromotersChunkActivityInput, FindPotentialPairsOfEnhancersPromotersForProjectActivityInput, UpsertProjectConfigurationActivityInput
 from utils.workflow_utils import get_default_retry_policy
 
 with workflow.unsafe.imports_passed_through():
-    from .activities import find_potential_pairs_of_enhancers_promoters_for_project, calculate_distances_for_enhancer_promoters_chunk
+    from .activities import find_potential_pairs_of_enhancers_promoters_for_project, calculate_distances_for_enhancer_promoters_chunk, upsert_project_configuration
 
 
 @workflow.defn(name="calculate-distances-for-project")
@@ -15,14 +15,21 @@ class CalculateDistancesForProjectWorkflow:
 
     @workflow.run
     async def run(self, input: CalculateDistancesForProjectWorkflowInput) -> CalculateDistancesForProjectWorkflowOutput:
+        await workflow.execute_local_activity(
+            activity=upsert_project_configuration,
+            arg=UpsertProjectConfigurationActivityInput(
+                project=input.project,
+                configuration=input.configuration
+            ),
+            schedule_to_close_timeout=timedelta(minutes=30),
+            retry_policy=get_default_retry_policy()
+        )
+
         find_activity_output = await workflow.execute_local_activity(
             activity=find_potential_pairs_of_enhancers_promoters_for_project,
             arg=FindPotentialPairsOfEnhancersPromotersForProjectActivityInput(
                 project=input.project,
-                enhancer_atlas_dataset_name=input.enhancer_atlas_dataset_name,
-                gencode_annotation_dataset_name=input.gencode_annotation_dataset_name,
-                base_pair_linear_distance_threshold=input.base_pair_linear_distance_threshold,
-                enhancer_promoter_pairs_chunk_size=input.enhancer_promoter_pairs_chunk_size
+                configuration=input.configuration
             ),
             schedule_to_close_timeout=timedelta(minutes=30),
             retry_policy=get_default_retry_policy()

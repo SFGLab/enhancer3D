@@ -101,3 +101,10 @@ class Enhancer3dProject(BaseModel):
     cell_line: str
     ensemble_region: ChromatinRegion
     ensemble_id: str
+
+
+class Enhancer3dProjectConfiguration(BaseModel):
+    enhancer_atlas_dataset_name: str
+    gencode_annotation_dataset_name: str
+    base_pair_linear_distance_threshold: Optional[int] = None
+    enhancer_promoter_pairs_chunk_size: int = 1000
