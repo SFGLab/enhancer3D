@@ -11,3 +11,5 @@ fsspec~=2025.2.0
 temporalio==1.10.0
 dotenv~=0.9.9
 python-dotenv~=1.0.1
+pymongo~=4.8.0
+pyarrow~=19.0.0

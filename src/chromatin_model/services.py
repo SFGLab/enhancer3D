@@ -3,7 +3,8 @@ from typing import Optional
 
 from fsspec import AbstractFileSystem
 
-from chromatin_model import load_3dgnome_model_ensemble_from_filesystem, pack_chromatin_model_ensemble_to_filesystem
+from chromatin_model.loaders.gnome import load_3dgnome_model_ensemble_from_filesystem
+from chromatin_model.packers import pack_chromatin_model_ensemble_to_filesystem
 
 logger = logging.getLogger(__name__)
 

@@ -3,7 +3,7 @@ import os
 import numpy as np
 from fsspec import AbstractFileSystem
 
-from chromatin_model import ChromatinModelEnsemble
+from chromatin_model.models import ChromatinModelEnsemble
 
 
 def pack_chromatin_model_ensemble_to_filesystem(fs: AbstractFileSystem, save_path: str, model: ChromatinModelEnsemble):

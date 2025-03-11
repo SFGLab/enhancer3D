@@ -1,10 +1,13 @@
+from typing import Optional
+
 import numpy as np
 import pandas as pd
 from pybedtools import BedTool
 
-from chromatin_model import ChromatinModelEnsemble
+from chromatin_model.models import ChromatinModelEnsemble
+from common.models import ChromatinRegion
 from utils.pandas_utils import DataFrameBufferedSink
-from .models import ChromatinRegion, RegionalGenesAndEnhancersDataset, FullGenesAndEnhancersDataset
+from distance_calculation.models import RegionalGenesAndEnhancersDataset, FullGenesAndEnhancersDataset
 
 
 def hydrate_enhancer_dataset_with_ensemble_data(
@@ -12,7 +15,7 @@ def hydrate_enhancer_dataset_with_ensemble_data(
     ensemble: ChromatinModelEnsemble
 ) -> pd.DataFrame:
     hydrated_enhancer_dataset = enhancer_atlas_dataset.rename(columns={
-        'chr': 'enh_chr',
+        'chromosome': 'enh_chr',
         'start': 'enh_start',
         'end': 'enh_end',
         'score': 'enh_score',
@@ -53,14 +56,15 @@ def extract_regional_genes_and_enhancers_for_ensemble(
 
     genes_bed = BedTool.from_dataframe(
         hydrated_gencode_dataset
-        .loc[hydrated_gencode_dataset['gene_affected_by_svs'].isna()]
+        # .loc[hydrated_gencode_dataset['gene_affected_by_svs'].isna()]
         .reset_index()
         [['gene_chr', 'gene_start', 'gene_end', 'index']]
         .astype({'gene_start': 'int32', 'gene_end': 'int32'})
     )
 
     enhancers_bed = BedTool.from_dataframe(
-        hydrated_enhancer_dataset.loc[hydrated_enhancer_dataset['enh_affected_by_svs'].isna()]
+        hydrated_enhancer_dataset
+        # .loc[hydrated_enhancer_dataset['enh_affected_by_svs'].isna()]
         .reset_index()
         [['enh_chr', 'enh_start', 'enh_end', 'index']]
         .astype({'enh_start': 'int32', 'enh_end': 'int32'})
@@ -135,7 +139,8 @@ def extract_full_genes_and_enhancers_for_ensemble(
 
 
 def select_potential_enhances_gene_pairs(
-    full_genes_and_enhancers_dataset: FullGenesAndEnhancersDataset
+    full_genes_and_enhancers_dataset: FullGenesAndEnhancersDataset,
+    base_pair_linear_distance_threshold: Optional[int] = None
 ) -> pd.DataFrame:
     potential_enhancer_gene_pairs = pd.merge(
         full_genes_and_enhancers_dataset.full_genes_for_region.reset_index(),
@@ -153,10 +158,9 @@ def select_potential_enhances_gene_pairs(
     potential_enhancer_gene_pairs['enh_tSS_distance'] = np.abs(
         potential_enhancer_gene_pairs['gene_TSS_pos'] - potential_enhancer_gene_pairs['enh_center_pos'])
 
-    mask = (
-        (potential_enhancer_gene_pairs['enh_tSS_distance'] <= 1000000)
-        & (potential_enhancer_gene_pairs['gene_model_position'] != potential_enhancer_gene_pairs['enh_model_position'])
-    )
+    mask = (potential_enhancer_gene_pairs['gene_model_position'] != potential_enhancer_gene_pairs['enh_model_position'])
+    if base_pair_linear_distance_threshold is not None:
+        mask = mask & (potential_enhancer_gene_pairs['enh_tSS_distance'] <= base_pair_linear_distance_threshold)
 
     potential_enhancer_gene_pairs = potential_enhancer_gene_pairs[mask]
     potential_enhancer_gene_pairs = potential_enhancer_gene_pairs.drop(['index_gene', 'index_enh'], axis=1)
@@ -189,7 +193,8 @@ def calculate_distances_for_potential_enhancer_gene_pairs(
             'region_end': ensemble_region.end,
             **potential_enhancer_gene_pair.to_dict(),
             'avg_dist': ensemble_average_distance,
-            'number_bins': ensemble_region.count
+            'dist': ensemble_distances,
+            'number_bins': ensemble.count
         })
 
     return distances_dataset_sink.df
