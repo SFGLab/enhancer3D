@@ -1,14 +1,17 @@
 import logging
 import os
 from concurrent.futures.thread import ThreadPoolExecutor
+from datetime import datetime
 from typing import Tuple
 
 import pandas as pd
 from temporalio import activity
 
 from calculator.loaders import load_enhancer_atlas_dataset_from_filesystem, load_gencode_annotation_dataset_from_filesystem
-from calculator.models import FindPotentialPairsOfEnhancersPromotersForProjectActivityInput, FindPotentialPairsOfEnhancersPromotersForProjectActivityOutput, CalculateDistancesForEnhancerPromotersChunkActivityInput, CalculateDistancesForEnhancerPromotersChunkActivityOutput, UpsertProjectConfigurationActivityInput
+from calculator.models import FindPotentialPairsOfEnhancersPromotersForProjectActivityInput, FindPotentialPairsOfEnhancersPromotersForProjectActivityOutput, CalculateDistancesForEnhancerPromotersChunkActivityInput, CalculateDistancesForEnhancerPromotersChunkActivityOutput, UpsertProjectConfigurationActivityInput, PersistDistancesForEnhancerPromotersChunkActivityInput
 from chromatin_model.loaders.packed import load_chromatin_model_ensemble_from_filesystem
+from database.models import DistanceCalculationEntry
+from database.services import upsert_many_database_models
 from distance_calculation.services import hydrate_enhancer_dataset_with_ensemble_data, hydrate_gencode_dataset_with_ensemble_data, extract_regional_genes_and_enhancers_for_ensemble, extract_full_genes_and_enhancers_for_ensemble, select_potential_enhances_gene_pairs, calculate_distances_for_potential_enhancer_gene_pairs
 from utils.filesystem_utils import get_bucket_filesystem
 
@@ -22,12 +25,16 @@ def upsert_project_configuration(input: UpsertProjectConfigurationActivityInput)
     processing_bucket = os.getenv("PROCESSING_BUCKET", "processing")
 
     project = input.project
+    dataset = input.dataset
     configuration = input.configuration
 
-    with bucket_fs.open(os.path.join(processing_bucket, "projects", project.name, "configuration.json"), "w") as f:
+    with bucket_fs.open(os.path.join(processing_bucket, "projects", project.id, "configuration.json"), "w") as f:
         f.write(configuration.model_dump_json(indent=4))
 
-    with bucket_fs.open(os.path.join(processing_bucket, "projects", project.name, "project.json"), "w") as f:
+    with bucket_fs.open(os.path.join(processing_bucket, "projects", project.id, "dataset.json"), "w") as f:
+        f.write(dataset.model_dump_json(indent=4))
+
+    with bucket_fs.open(os.path.join(processing_bucket, "projects", project.id, "project.json"), "w") as f:
         f.write(project.model_dump_json(indent=4))
 
     return None
@@ -45,9 +52,10 @@ def find_potential_pairs_of_enhancers_promoters_for_project(input: FindPotential
     gencode_annotation_dataset_path = os.path.join(processing_bucket, "gencode")
 
     project = input.project
+    dataset = input.dataset
     configuration = input.configuration
 
-    project_enhancer_promoter_chunks_path = os.path.join(processing_bucket, "projects", project.name, "enhancer_promoter_pairs")
+    project_enhancer_promoter_chunks_path = os.path.join(processing_bucket, "projects", project.id, "enhancer_promoter_pairs")
     logger.info(f"Starting Enhancer3D project {project}, chunks will be output to {project_enhancer_promoter_chunks_path}")
 
     enhancer_atlas_dataset = load_enhancer_atlas_dataset_from_filesystem(
@@ -65,7 +73,7 @@ def find_potential_pairs_of_enhancers_promoters_for_project(input: FindPotential
     ensemble = load_chromatin_model_ensemble_from_filesystem(
         bucket_fs,
         model_repository_bucket,
-        project.ensemble_id
+        dataset.ensemble_id
     )
 
     # Hydrate the datasets with the ensemble data
@@ -81,7 +89,7 @@ def find_potential_pairs_of_enhancers_promoters_for_project(input: FindPotential
 
     logger.info(f"Extracting genes and enhancers for the project {project}")
     regional_genes_and_enhancers_dataset = extract_regional_genes_and_enhancers_for_ensemble(
-        ensemble_region=project.ensemble_region,
+        ensemble_region=dataset.ensemble_region,
         ensemble=ensemble,
         hydrated_enhancer_dataset=hydrated_enhancer_dataset,
         hydrated_gencode_dataset=hydrated_gencode_dataset
@@ -141,13 +149,14 @@ def calculate_distances_for_enhancer_promoters_chunk(input: CalculateDistancesFo
     logger.info(f"Using following buckets: processing={processing_bucket}, model_repository={model_repository_bucket}")
 
     project = input.project
+    dataset = input.dataset
     enhancers_promoters_chunk_path = input.enhancers_promoters_chunk_path
-    distances_chunk_path = os.path.join(processing_bucket, "projects", project.name, "distances", os.path.basename(enhancers_promoters_chunk_path))
+    distances_chunk_path = os.path.join(processing_bucket, "projects", project.id, "distances", os.path.basename(enhancers_promoters_chunk_path))
 
     ensemble = load_chromatin_model_ensemble_from_filesystem(
         bucket_fs,
         model_repository_bucket,
-        project.ensemble_id
+        dataset.ensemble_id
     )
 
     logger.info(f"Calculating distances for enhancer-promoter pairs chunk {enhancers_promoters_chunk_path}, output will be written to {distances_chunk_path}")
@@ -157,7 +166,7 @@ def calculate_distances_for_enhancer_promoters_chunk(input: CalculateDistancesFo
 
     # Calculate distances for the enhancer-promoter pairs
     distances_for_potential_enhancer_gene_pairs = calculate_distances_for_potential_enhancer_gene_pairs(
-        ensemble_region=project.ensemble_region,
+        ensemble_region=dataset.ensemble_region,
         ensemble=ensemble,
         potential_enhancer_gene_pairs=enhancer_promoter_pairs
     )
@@ -169,4 +178,40 @@ def calculate_distances_for_enhancer_promoters_chunk(input: CalculateDistancesFo
 
     return CalculateDistancesForEnhancerPromotersChunkActivityOutput(
         distances_chunk_path=distances_chunk_path
+    )
+
+
+@activity.defn
+def persist_distances_for_enhancer_promoters_chunk(input: PersistDistancesForEnhancerPromotersChunkActivityInput) -> None:
+    bucket_fs = get_bucket_filesystem()
+    executed_at = datetime.now()
+
+    processing_bucket = os.getenv("PROCESSING_BUCKET", "processing")
+    enhancer3d_database_name = os.getenv("DATABASE_NAME", "enhancer3d")
+    distance_calculation_collection_name = os.getenv("DISTANCE_CALCULATION_COLLECTION_NAME", "distance_calculation")
+
+    project = input.project
+    dataset = input.dataset
+    distances_chunk_path = input.distances_chunk_path
+
+    with bucket_fs.open(distances_chunk_path, "rb") as f:
+        distances = pd.read_parquet(f)
+
+    distances_data = [
+        DistanceCalculationEntry.model_validate({
+            'project_id': project.id,
+            'project_author': project.author,
+            'project_cell_line': project.cell_line,
+            'project_executed_at': executed_at,
+            'ensemble_id': dataset.ensemble_id,
+            **row.to_dict(),
+        })
+        for _, row in distances.iterrows()
+    ]
+
+    logger.info(f"Persisting distances for enhancer-promoter pairs chunk {distances_chunk_path}")
+    upsert_many_database_models(
+        database_name=enhancer3d_database_name,
+        collection_name=distance_calculation_collection_name,
+        data=distances_data
     )

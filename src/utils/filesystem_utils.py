@@ -12,7 +12,7 @@ def get_bucket_filesystem(
     endpoint: Optional[str] = None,
     access_key: Optional[str] = None,
     secret_key: Optional[str] = None,
-) -> S3FileSystem:
+) -> AbstractFileSystem:
     if endpoint is None:
         endpoint = os.getenv('BUCKET_ENDPOINT', 'http://minio:9000')
 

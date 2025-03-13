@@ -176,7 +176,7 @@ def calculate_distances_for_potential_enhancer_gene_pairs(
     distances_dataset_sink = DataFrameBufferedSink(columns=[
         'region_chr', 'region_start', 'region_end',
         *potential_enhancer_gene_pairs.columns,
-        'avg_dist', 'number_bins'
+        'avg_dist', 'var_dist', 'dist', 'number_bins'
     ])
 
     for _, potential_enhancer_gene_pair in potential_enhancer_gene_pairs.iterrows():
@@ -186,6 +186,7 @@ def calculate_distances_for_potential_enhancer_gene_pairs(
         )
 
         ensemble_average_distance = ensemble_distances.mean()
+        ensemble_distance_variance = ensemble_distances.var()
 
         distances_dataset_sink.write({
             'region_chr': ensemble_region.chromosome,
@@ -193,6 +194,7 @@ def calculate_distances_for_potential_enhancer_gene_pairs(
             'region_end': ensemble_region.end,
             **potential_enhancer_gene_pair.to_dict(),
             'avg_dist': ensemble_average_distance,
+            'var_dist': ensemble_distance_variance,
             'dist': ensemble_distances,
             'number_bins': ensemble.count
         })

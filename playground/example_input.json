@@ -1,0 +1,20 @@
+{
+  "project": {
+    "id": "GM12878_Deni_mod_chr1_74280_3521135",
+    "author": "Nik Kozlov",
+    "species": "hg38",
+    "cell_line": "GM12878"
+  },
+  "dataset": {
+    "ensemble_id": "results_GM12878_Deni_mod_chr1_74280_3521135",
+    "ensemble_region": {
+      "chromosome": "chr1",
+      "start": 74280,
+      "end": 3521135
+    }
+  },
+  "configuration": {
+    "enhancer_atlas_dataset_name": "enchancers.GM12878.bed",
+    "gencode_annotation_dataset_name": "gencode.v40.basic.annotation"
+  }
+}
