@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Sequence
 
-from utils.database_utils import BaseDatabaseModel
+from utils.pydantic_utils import BaseDatabaseModel
 
 
 class DistanceCalculationEntry(BaseDatabaseModel):

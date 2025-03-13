@@ -2,7 +2,7 @@ from typing import Sequence
 
 from pymongo import UpdateOne
 
-from utils.database_utils import BaseDatabaseModel
+from utils.pydantic_utils import BaseDatabaseModel
 from utils.mongo_utils import get_mongo_client
 
 

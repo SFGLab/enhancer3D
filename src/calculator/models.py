@@ -7,7 +7,7 @@ from common.models import Enhancer3dProject, Enhancer3dProjectConfiguration, Enh
 
 class UpsertProjectConfigurationActivityInput(BaseModel):
     project: Enhancer3dProject
-    dataset: Enhancer3dProjectDataset
+    datasets: List[Enhancer3dProjectDataset]
     configuration: Enhancer3dProjectConfiguration
 
 
@@ -18,6 +18,7 @@ class FindPotentialPairsOfEnhancersPromotersForProjectActivityInput(BaseModel):
 
 
 class FindPotentialPairsOfEnhancersPromotersForProjectActivityOutput(BaseModel):
+    dataset: Enhancer3dProjectDataset
     enhancers_promoters_chunk_paths: List[str]
 
 
@@ -28,12 +29,13 @@ class CalculateDistancesForEnhancerPromotersChunkActivityInput(BaseModel):
 
 
 class CalculateDistancesForEnhancerPromotersChunkActivityOutput(BaseModel):
+    dataset: Enhancer3dProjectDataset
     distances_chunk_path: str
 
 
 class CalculateDistancesForProjectWorkflowInput(BaseModel):
     project: Enhancer3dProject
-    dataset: Enhancer3dProjectDataset
+    datasets: List[Enhancer3dProjectDataset]
     configuration: Enhancer3dProjectConfiguration
 
 
@@ -45,3 +47,9 @@ class PersistDistancesForEnhancerPromotersChunkActivityInput(BaseModel):
     project: Enhancer3dProject
     dataset: Enhancer3dProjectDataset
     distances_chunk_path: str
+
+
+class PreloadDatasetsForProjectActivityInput(BaseModel):
+    project: Enhancer3dProject
+    datasets: List[Enhancer3dProjectDataset]
+    configuration: Enhancer3dProjectConfiguration

@@ -3,11 +3,11 @@ from datetime import timedelta
 
 from temporalio import workflow
 
-from calculator.models import CalculateDistancesForProjectWorkflowInput, CalculateDistancesForProjectWorkflowOutput, CalculateDistancesForEnhancerPromotersChunkActivityInput, FindPotentialPairsOfEnhancersPromotersForProjectActivityInput, UpsertProjectConfigurationActivityInput, PersistDistancesForEnhancerPromotersChunkActivityInput
 from utils.workflow_utils import get_default_retry_policy
 
 with workflow.unsafe.imports_passed_through():
-    from .activities import find_potential_pairs_of_enhancers_promoters_for_project, calculate_distances_for_enhancer_promoters_chunk, upsert_project_configuration, persist_distances_for_enhancer_promoters_chunk
+    from .models import CalculateDistancesForProjectWorkflowInput, CalculateDistancesForProjectWorkflowOutput, CalculateDistancesForEnhancerPromotersChunkActivityInput, FindPotentialPairsOfEnhancersPromotersForProjectActivityInput, UpsertProjectConfigurationActivityInput, PersistDistancesForEnhancerPromotersChunkActivityInput, PreloadDatasetsForProjectActivityInput
+    from .activities import find_potential_pairs_of_enhancers_promoters_for_project, calculate_distances_for_enhancer_promoters_chunk, upsert_project_configuration, persist_distances_for_enhancer_promoters_chunk, preload_datasets_for_project
 
 
 @workflow.defn(name="calculate-distances-for-project")
@@ -19,54 +19,71 @@ class CalculateDistancesForProjectWorkflow:
             activity=upsert_project_configuration,
             arg=UpsertProjectConfigurationActivityInput(
                 project=input.project,
-                dataset=input.dataset,
+                datasets=input.datasets,
                 configuration=input.configuration
             ),
             schedule_to_close_timeout=timedelta(minutes=30),
             retry_policy=get_default_retry_policy()
         )
 
-        find_activity_output = await workflow.execute_local_activity(
-            activity=find_potential_pairs_of_enhancers_promoters_for_project,
-            arg=FindPotentialPairsOfEnhancersPromotersForProjectActivityInput(
+        await workflow.execute_local_activity(
+            activity=preload_datasets_for_project,
+            arg=PreloadDatasetsForProjectActivityInput(
                 project=input.project,
-                dataset=input.dataset,
+                datasets=input.datasets,
                 configuration=input.configuration
             ),
             schedule_to_close_timeout=timedelta(minutes=30),
             retry_policy=get_default_retry_policy()
         )
+
+        find_activities = [
+            workflow.execute_local_activity(
+                activity=find_potential_pairs_of_enhancers_promoters_for_project,
+                arg=FindPotentialPairsOfEnhancersPromotersForProjectActivityInput(
+                    project=input.project,
+                    dataset=dataset,
+                    configuration=input.configuration
+                ),
+                schedule_to_close_timeout=timedelta(minutes=30),
+                retry_policy=get_default_retry_policy()
+            )
+            for dataset in input.datasets
+        ]
+
+        find_activity_outputs = await asyncio.gather(*find_activities)
 
         calculation_activities = [
             workflow.execute_local_activity(
                 activity=calculate_distances_for_enhancer_promoters_chunk,
                 arg=CalculateDistancesForEnhancerPromotersChunkActivityInput(
                     project=input.project,
-                    dataset=input.dataset,
+                    dataset=output.dataset,
                     enhancers_promoters_chunk_path=chunk_path
                 ),
                 schedule_to_close_timeout=timedelta(minutes=30),
                 retry_policy=get_default_retry_policy()
             )
-            for chunk_path in find_activity_output.enhancers_promoters_chunk_paths
+            for output in find_activity_outputs
+            for chunk_path in output.enhancers_promoters_chunk_paths
         ]
 
         calculation_outputs = await asyncio.gather(*calculation_activities)
-        distances_chunk_paths = [output.distances_chunk_path for output in calculation_outputs]
-
         persist_activities = [
             workflow.execute_local_activity(
                 activity=persist_distances_for_enhancer_promoters_chunk,
                 arg=PersistDistancesForEnhancerPromotersChunkActivityInput(
                     project=input.project,
-                    dataset=input.dataset,
-                    distances_chunk_path=chunk_path
+                    dataset=output.dataset,
+                    distances_chunk_path=output.distances_chunk_path
                 ),
                 schedule_to_close_timeout=timedelta(minutes=30),
                 retry_policy=get_default_retry_policy()
             )
-            for chunk_path in distances_chunk_paths
+            for output in calculation_outputs
         ]
+
+        distances_chunk_paths = [output.distances_chunk_path for output in calculation_outputs]
 
         await asyncio.gather(*persist_activities)
         return CalculateDistancesForProjectWorkflowOutput(distances_chunk_paths=distances_chunk_paths)

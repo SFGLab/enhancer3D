@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import dotenv
 
-from calculator.activities import find_potential_pairs_of_enhancers_promoters_for_project, calculate_distances_for_enhancer_promoters_chunk, upsert_project_configuration, persist_distances_for_enhancer_promoters_chunk
+from calculator.activities import find_potential_pairs_of_enhancers_promoters_for_project, calculate_distances_for_enhancer_promoters_chunk, upsert_project_configuration, persist_distances_for_enhancer_promoters_chunk, preload_datasets_for_project
 from calculator.workflows import CalculateDistancesForProjectWorkflow
 from utils.temporal_utils import get_temporal_worker
 
@@ -17,6 +17,7 @@ async def main() -> None:
             executor=executor,
             task_queue="calculator-task-queue",
             activities=[
+                preload_datasets_for_project,
                 upsert_project_configuration,
                 find_potential_pairs_of_enhancers_promoters_for_project,
                 calculate_distances_for_enhancer_promoters_chunk,

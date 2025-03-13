@@ -18,3 +18,18 @@ class BaseDatabaseModel(ABC, BaseModel):
             .union(set(self.model_computed_fields.keys()))
             .difference(set(self.index))
         )
+
+
+class BaseHashableModel(BaseModel):
+
+    def __hash__(self):
+        return hash(tuple(self.model_dump().values()))
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.model_dump() == other.model_dump()
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

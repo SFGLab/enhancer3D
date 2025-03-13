@@ -1,6 +1,7 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
+from pydantic.root_model import RootModel
 
 
 class ChromatinRegion(BaseModel):
@@ -105,6 +106,9 @@ class Enhancer3dProject(BaseModel):
 class Enhancer3dProjectDataset(BaseModel):
     ensemble_id: str
     ensemble_region: ChromatinRegion
+
+
+Enhancer3dProjectDatasetList = RootModel[List[Enhancer3dProjectDataset]]
 
 
 class Enhancer3dProjectConfiguration(BaseModel):
