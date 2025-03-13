@@ -1,12 +1,13 @@
 import logging
 import os
-from concurrent.futures import Executor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from functools import cache
+from multiprocessing import Manager
 from typing import Sequence, Callable, Type, Optional
 
 from temporalio.client import Client
 from temporalio.contrib.pydantic import pydantic_data_converter
-from temporalio.worker import Worker
+from temporalio.worker import Worker, SharedStateManager
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -32,7 +33,6 @@ async def get_temporal_client(
 
 
 async def get_temporal_worker(
-    executor: Executor,
     task_queue: str,
     activities: Sequence[Callable],
     workflows: Sequence[Type],
@@ -46,5 +46,7 @@ async def get_temporal_worker(
         task_queue=task_queue,
         workflows=workflows,
         activities=activities,
-        activity_executor=executor
+        # activity_executor=ThreadPoolExecutor(),
+        activity_executor=ProcessPoolExecutor(),
+        shared_state_manager=SharedStateManager.create_from_multiprocessing(Manager()),
     )

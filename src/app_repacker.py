@@ -12,21 +12,19 @@ logger = logging.getLogger(__name__)
 
 
 async def main() -> None:
-    with ThreadPoolExecutor() as executor:
-        temporal_worker = await get_temporal_worker(
-            executor=executor,
-            task_queue="repacker-task-queue",
-            activities=[
-                repack_3dgnome_model_ensemble_from_bucket,
-                list_all_models_in_bucket,
-            ],
-            workflows=[
-                Repack3dgnomeModelEnsembleWorkflow,
-                Repack3dgnomeManyModelEnsemblesWorkflow,
-            ],
-        )
+    temporal_worker = await get_temporal_worker(
+        task_queue="repacker-task-queue",
+        activities=[
+            repack_3dgnome_model_ensemble_from_bucket,
+            list_all_models_in_bucket,
+        ],
+        workflows=[
+            Repack3dgnomeModelEnsembleWorkflow,
+            Repack3dgnomeManyModelEnsemblesWorkflow,
+        ],
+    )
 
-        await temporal_worker.run()
+    await temporal_worker.run()
 
 
 if __name__ == '__main__':

@@ -9,7 +9,7 @@ from fsspec import AbstractFileSystem
 
 @lru_cache(maxsize=16)
 def load_enhancer_atlas_dataset_from_filesystem(fs: AbstractFileSystem, data_path: str, dataset_name: str) -> pd.DataFrame:
-    with fs.open(os.path.join(data_path, f"{dataset_name}.csv"), "r") as dataset_file:
+    with fs.open(os.path.join(data_path, f"{dataset_name}.bed"), "r") as dataset_file:
         return pd.read_csv(
             dataset_file,
             sep="\t",
@@ -20,6 +20,11 @@ def load_enhancer_atlas_dataset_from_filesystem(fs: AbstractFileSystem, data_pat
 
 @lru_cache(maxsize=16)
 def load_gencode_annotation_dataset_from_filesystem(fs: AbstractFileSystem, data_path: str, dataset_name: str) -> pd.DataFrame:
+    if fs.exists(os.path.join(data_path, f"{dataset_name}-prepared.parquet")):
+        with fs.open(os.path.join(data_path, f"{dataset_name}-prepared.parquet"), "rb") as prepared_dataset_file:
+            return pd.read_parquet(prepared_dataset_file)
+
+    # Load the dataset from the GTF file and prepare it for use
     with TemporaryDirectory() as temporary_local_directory:
         with fs.open(os.path.join(data_path, f"{dataset_name}.gtf"), "r") as dataset_file:
             # Save the dataset to a local file, necessary for pyranges to read it
@@ -28,7 +33,16 @@ def load_gencode_annotation_dataset_from_filesystem(fs: AbstractFileSystem, data
                 local_gencode_file.write(dataset_file.read())
 
             # Read the dataset using pyranges
-            return pr.read_gff(
+            full_gencode_dataset = pr.read_gff(
                 local_gencode_file_path,
                 ignore_bad=True
             )
+
+            # Prepare the dataset for use
+            prepared_gencode_dataset = full_gencode_dataset[full_gencode_dataset['Feature'] == 'gene']
+
+            # Save the prepared dataset to a parquet file
+            with fs.open(os.path.join(data_path, f"{dataset_name}-prepared.parquet"), "wb") as prepared_dataset_file:
+                prepared_gencode_dataset.to_parquet(prepared_dataset_file)
+
+            return prepared_gencode_dataset
