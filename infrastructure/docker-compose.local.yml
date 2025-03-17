@@ -15,3 +15,23 @@ services:
     temporal_ui:
         ports:
             - "8080:8080"
+
+    app_repacker:
+        develop:
+            watch:
+                -   action: rebuild
+                    path: ../src
+                    target: /app/src
+                -   action: rebuild
+                    path: ../requirements.txt
+        restart: no
+
+    app_calculator:
+        develop:
+            watch:
+                -   action: rebuild
+                    path: ../src
+                    target: /app/src
+                -   action: rebuild
+                    path: ../requirements.txt
+        restart: no

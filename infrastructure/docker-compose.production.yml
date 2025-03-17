@@ -1,0 +1,14 @@
+services:
+    bucket:
+        ports:
+            - "9001:9001"
+
+    temporal_ui:
+        ports:
+            - "8080:8080"
+
+    app_repacker:
+        scale: 1
+
+    app_calculator:
+        scale: 1
