@@ -58,7 +58,7 @@ services:
         networks:
             - enhancer3d-network
 
-    temporal_postresql:
+    temporal_postgresql:
         image: postgres:${POSTGRES_VERSION}
         expose:
             - "5432"
@@ -100,7 +100,7 @@ services:
         networks:
             - enhancer3d-network
         depends_on:
-            - temporal_postresql
+            - temporal_postgresql
             - temporal_elasticsearch
 
     temporal_ui:
@@ -123,7 +123,7 @@ services:
             - BUCKET_ENDPOINT=http://minio:9000
             - BUCKET_ACCESS_KEY=${MINIO_ACCESS_KEY}
             - BUCKET_SECRET_KEY=${MINIO_SECRET_KEY}
-            - TEMPORAL_ENDPOINT=tempora;:7233
+            - TEMPORAL_ENDPOINT=temporal:7233
             - TEMPORAL_NAMESPACE=default
             - MONGO_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
         depends_on:
@@ -140,7 +140,7 @@ services:
             - BUCKET_ENDPOINT=http://minio:9000
             - BUCKET_ACCESS_KEY=${MINIO_ACCESS_KEY}
             - BUCKET_SECRET_KEY=${MINIO_SECRET_KEY}
-            - TEMPORAL_ENDPOINT=tempora;:7233
+            - TEMPORAL_ENDPOINT=temporal:7233
             - TEMPORAL_NAMESPACE=default
             - MONGO_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
         depends_on:
@@ -148,6 +148,82 @@ services:
         networks:
             - enhancer3d-network
         restart: on-failure
+
+    spark-master:
+        build:
+            context: ..
+            dockerfile: infrastructure/spark.Dockerfile
+        expose:
+            - "8080"
+            - "7077"
+        environment:
+            - SPARK_MODE=master
+            - SPARK_MASTER_HOST=spark-master
+            - SPARK_RPC_AUTHENTICATION_ENABLED=${SPARK_RPC_AUTHENTICATION_ENABLED}
+            - SPARK_RPC_AUTHENTICATION_SECRET=${SPARK_RPC_AUTHENTICATION_SECRET}
+            - SPARK_RPC_ENCRYPTION=${SPARK_RPC_ENCRYPTION}
+            - SPARK_LOCAL_STORAGE_ENCRYPTION=${SPARK_LOCAL_STORAGE_ENCRYPTION}
+        healthcheck:
+            test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        networks:
+            - enhancer3d-network
+
+    spark-worker:
+        build:
+            context: ..
+            dockerfile: infrastructure/spark.Dockerfile
+        expose:
+            - "8081"
+        environment:
+            - SPARK_MODE=worker
+            - SPARK_MASTER=spark://spark-master:7077
+            - SPARK_WORKER_CORES=${SPARK_WORKER_CORES}
+            - SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}
+            - SPARK_RPC_AUTHENTICATION_ENABLED=${SPARK_RPC_AUTHENTICATION_ENABLED}
+            - SPARK_RPC_AUTHENTICATION_SECRET=${SPARK_RPC_AUTHENTICATION_SECRET}
+            - SPARK_RPC_ENCRYPTION=${SPARK_RPC_ENCRYPTION}
+            - SPARK_LOCAL_STORAGE_ENCRYPTION=${SPARK_LOCAL_STORAGE_ENCRYPTION}
+        healthcheck:
+            test: [ "CMD", "curl", "-f", "http://localhost:8081" ]
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        depends_on:
+            - spark-master
+        networks:
+            - enhancer3d-network
+
+    livy:
+        container_name: livy
+        build:
+            context: ..
+            dockerfile: infrastructure/livy.Dockerfile
+        volumes:
+            - ./config/livy/spark_defaults.conf:/opt/livy/conf/spark-defaults.conf
+            - ../:/work
+        depends_on:
+            - spark-master
+        networks:
+            - enhancer3d-network
+
+    jupyter:
+        container_name: jupyter
+        build:
+            context: ..
+            dockerfile: infrastructure/jupyter.Dockerfile
+        depends_on:
+            - spark-master
+            - livy
+        environment:
+            - JUPYTER_ENABLE_LAB=yes
+            - JUPYTER_TOKEN=${JUPYTER_TOKEN}
+        volumes:
+            - ../:/home/jovyan/work
+        networks:
+            - enhancer3d-network
 
 networks:
     enhancer3d-network:
