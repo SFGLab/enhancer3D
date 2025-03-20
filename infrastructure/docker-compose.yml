@@ -92,7 +92,7 @@ services:
             - DB_PORT=5432
             - POSTGRES_USER=${POSTGRES_USER}
             - POSTGRES_PWD=${POSTGRES_PASSWORD}
-            - POSTGRES_SEEDS=temporal_postresql
+            - POSTGRES_SEEDS=temporal_postgresql
             - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/deployment.yml
             - ENABLE_ES=true
             - ES_SEEDS=temporal_elasticsearch
