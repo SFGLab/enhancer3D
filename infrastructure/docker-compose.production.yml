@@ -8,15 +8,18 @@ services:
             - "8080:8080"
 
     app_repacker:
-        scale: 1
+        scale: ${APP_REPACKER_SCALE}
 
     app_calculator:
-        scale: 1
+        scale: ${APP_CALCULATOR_SCALE}
 
     spark-master:
         ports:
             - "8081:8080"
             - "7077:7077"
+
+    spark-worker:
+        scale: ${SPARK_WORKER_SCALE}
 
     jupyter:
         ports:

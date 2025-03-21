@@ -3,7 +3,7 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Install build environment
-RUN apt-get update -qq && apt-get install -y build-essential gcc zlib1g-dev
+RUN apt-get update -qq && apt-get install -y build-essential gcc zlib1g-dev bedtools
 
 # Install requirements
 COPY requirements.txt .

@@ -120,7 +120,7 @@ services:
             context: ..
             dockerfile: infrastructure/app_repacker.Dockerfile
         environment:
-            - BUCKET_ENDPOINT=http://minio:9000
+            - BUCKET_ENDPOINT=http://bucket:9000
             - BUCKET_ACCESS_KEY=${MINIO_ACCESS_KEY}
             - BUCKET_SECRET_KEY=${MINIO_SECRET_KEY}
             - TEMPORAL_ENDPOINT=temporal:7233
@@ -137,7 +137,7 @@ services:
             context: ..
             dockerfile: infrastructure/app_calculator.Dockerfile
         environment:
-            - BUCKET_ENDPOINT=http://minio:9000
+            - BUCKET_ENDPOINT=http://bucket:9000
             - BUCKET_ACCESS_KEY=${MINIO_ACCESS_KEY}
             - BUCKET_SECRET_KEY=${MINIO_SECRET_KEY}
             - TEMPORAL_ENDPOINT=temporal:7233

@@ -1,4 +1,4 @@
-FROM quay.io/jupyter/base-notebook:python-3.12 as jupyter
+FROM quay.io/jupyter/base-notebook:python-3.12.7 as jupyter
 
 USER root
 
