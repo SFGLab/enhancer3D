@@ -22,6 +22,16 @@ def hydrate_enhancer_dataset_with_ensemble_data(
     })
 
     hydrated_enhancer_dataset = hydrated_enhancer_dataset[['enh_chr', 'enh_start', 'enh_end', 'enh_score']]
+
+    # enhancer id = chr:start-end
+    hydrated_enhancer_dataset['enh_id'] = (
+        hydrated_enhancer_dataset['enh_chr'].astype(str)
+        + ':'
+        + hydrated_enhancer_dataset['enh_start'].astype(str)
+        + '-'
+        + hydrated_enhancer_dataset['enh_end'].astype(str)
+    )
+
     return hydrated_enhancer_dataset
 
 
@@ -174,7 +184,7 @@ def calculate_distances_for_potential_enhancer_gene_pairs(
     potential_enhancer_gene_pairs: pd.DataFrame
 ) -> pd.DataFrame:
     distances_dataset_sink = DataFrameBufferedSink(columns=[
-        'region_chr', 'region_start', 'region_end',
+        'region_id', 'region_chr', 'region_start', 'region_end',
         *potential_enhancer_gene_pairs.columns,
         'avg_dist', 'var_dist', 'dist', 'number_bins'
     ])
@@ -189,6 +199,7 @@ def calculate_distances_for_potential_enhancer_gene_pairs(
         ensemble_distance_variance = ensemble_distances.var()
 
         distances_dataset_sink.write({
+            'region_id': str(ensemble_region),
             'region_chr': ensemble_region.chromosome,
             'region_start': ensemble_region.start,
             'region_end': ensemble_region.end,

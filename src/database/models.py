@@ -15,6 +15,7 @@ class DistanceCalculationEntry(BaseDatabaseModel):
     ensemble_id: str
 
     # Region
+    region_id: str
     region_chr: str
     region_start: int
     region_end: int
@@ -31,6 +32,7 @@ class DistanceCalculationEntry(BaseDatabaseModel):
     gene_TSS_pos: int
 
     # Enhancer
+    enh_id: str
     enh_chr: str
     enh_start: int
     enh_end: int
@@ -52,23 +54,9 @@ class DistanceCalculationEntry(BaseDatabaseModel):
     @property
     def index(self) -> Sequence[str]:
         return [
-            # Project identifier
             'project_id',
-
-            # Ensemble identifier
             'ensemble_id',
-
-            # Region identifier
-            'region_chr',
-            'region_start',
-            'region_end',
-
-            # Gene identifier
+            'region_id',
             'gene_id',
-            'gene_start',
-            'gene_end',
-
-            # Enhancer identifier
-            'enh_start',
-            'enh_end'
+            'enh_id',
         ]
