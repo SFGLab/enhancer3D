@@ -47,9 +47,3 @@ class PersistDistancesForEnhancerPromotersChunkActivityInput(BaseModel):
     project: Enhancer3dProject
     dataset: Enhancer3dProjectDataset
     distances_chunk_path: str
-
-
-class PreloadDatasetsForProjectActivityInput(BaseModel):
-    project: Enhancer3dProject
-    datasets: List[Enhancer3dProjectDataset]
-    configuration: Enhancer3dProjectConfiguration

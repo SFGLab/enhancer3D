@@ -7,42 +7,13 @@ import pandas as pd
 from temporalio import activity
 
 from calculator.loaders import load_enhancer_atlas_dataset_from_filesystem, load_gencode_annotation_dataset_from_filesystem
-from calculator.models import FindPotentialPairsOfEnhancersPromotersForProjectActivityInput, FindPotentialPairsOfEnhancersPromotersForProjectActivityOutput, CalculateDistancesForEnhancerPromotersChunkActivityInput, CalculateDistancesForEnhancerPromotersChunkActivityOutput, UpsertProjectConfigurationActivityInput, PersistDistancesForEnhancerPromotersChunkActivityInput, PreloadDatasetsForProjectActivityInput
+from calculator.models import FindPotentialPairsOfEnhancersPromotersForProjectActivityInput, FindPotentialPairsOfEnhancersPromotersForProjectActivityOutput, CalculateDistancesForEnhancerPromotersChunkActivityInput, CalculateDistancesForEnhancerPromotersChunkActivityOutput, UpsertProjectConfigurationActivityInput, PersistDistancesForEnhancerPromotersChunkActivityInput
 from chromatin_model.loaders.packed import load_chromatin_model_ensemble_from_filesystem
 from common.models import Enhancer3dProjectDatasetList
 from database.models import DistanceCalculationEntry
 from database.services import upsert_many_database_models
 from distance_calculation.services import hydrate_enhancer_dataset_with_ensemble_data, hydrate_gencode_dataset_with_ensemble_data, extract_regional_genes_and_enhancers_for_ensemble, extract_full_genes_and_enhancers_for_ensemble, select_potential_enhances_gene_pairs, calculate_distances_for_potential_enhancer_gene_pairs
 from utils.filesystem_utils import get_bucket_filesystem
-
-
-@activity.defn
-def preload_datasets_for_project(input: PreloadDatasetsForProjectActivityInput) -> None:
-    bucket_fs = get_bucket_filesystem()
-
-    processing_bucket = os.getenv("PROCESSING_BUCKET", "processing")
-    model_repository_bucket = os.getenv("MODEL_REPOSITORY_BUCKET", "model-repository")
-
-    activity.logger.info(f"Preloading datasets from buckets processing={processing_bucket}, model_repository={model_repository_bucket}")
-
-    enhancer_atlas_dataset_path = os.path.join(processing_bucket, "enhancer_atlas")
-    gencode_annotation_dataset_path = os.path.join(processing_bucket, "gencode")
-
-    configuration = input.configuration
-
-    enhancer_atlas_dataset = load_enhancer_atlas_dataset_from_filesystem(
-        bucket_fs,
-        enhancer_atlas_dataset_path,
-        configuration.enhancer_atlas_dataset_name
-    )
-
-    gencode_annotation_dataset = load_gencode_annotation_dataset_from_filesystem(
-        bucket_fs,
-        gencode_annotation_dataset_path,
-        configuration.gencode_annotation_dataset_name
-    )
-
-    return None
 
 
 @activity.defn
@@ -93,13 +64,15 @@ def find_potential_pairs_of_enhancers_promoters_for_project(input: FindPotential
     enhancer_atlas_dataset = load_enhancer_atlas_dataset_from_filesystem(
         bucket_fs,
         enhancer_atlas_dataset_path,
-        configuration.enhancer_atlas_dataset_name
+        dataset.enhancer_atlas_dataset_name,
+        dataset.enhancer_atlas_dataset_type
     )
 
     gencode_annotation_dataset = load_gencode_annotation_dataset_from_filesystem(
         bucket_fs,
         gencode_annotation_dataset_path,
-        configuration.gencode_annotation_dataset_name
+        dataset.gencode_annotation_dataset_name,
+        dataset.gencode_annotation_dataset_type
     )
 
     ensemble = load_chromatin_model_ensemble_from_filesystem(

@@ -15,23 +15,14 @@ def hydrate_enhancer_dataset_with_ensemble_data(
     ensemble: ChromatinModelEnsemble
 ) -> pd.DataFrame:
     hydrated_enhancer_dataset = enhancer_atlas_dataset.rename(columns={
+        'id': 'enh_id',
         'chromosome': 'enh_chr',
         'start': 'enh_start',
         'end': 'enh_end',
         'score': 'enh_score',
     })
 
-    hydrated_enhancer_dataset = hydrated_enhancer_dataset[['enh_chr', 'enh_start', 'enh_end', 'enh_score']]
-
-    # enhancer id = chr:start-end
-    hydrated_enhancer_dataset['enh_id'] = (
-        hydrated_enhancer_dataset['enh_chr'].astype(str)
-        + ':'
-        + hydrated_enhancer_dataset['enh_start'].astype(str)
-        + '-'
-        + hydrated_enhancer_dataset['enh_end'].astype(str)
-    )
-
+    hydrated_enhancer_dataset = hydrated_enhancer_dataset[['enh_id', 'enh_chr', 'enh_start', 'enh_end', 'enh_score']]
     return hydrated_enhancer_dataset
 
 

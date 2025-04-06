@@ -4,3 +4,6 @@ limit.maxIDLength:
 system.forceSearchAttributesCacheRefreshOnRead:
   - value: false
     constraints: {}
+limit.historyCount.error:
+  - value: 2147483647
+    constraints: {}

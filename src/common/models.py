@@ -1,3 +1,4 @@
+from enum import StrEnum
 from typing import Optional, List
 
 from pydantic import BaseModel
@@ -103,16 +104,35 @@ class Enhancer3dProject(BaseModel):
     cell_line: str
 
 
+class Enhancer3dEnhancerAtlasDatasetType(StrEnum):
+    BED = "bed"
+    TSV_LIFTOVERED_REF = "tsv_liftovered_ref"
+    TSV_LIFTOVERED_MOD = "tsv_liftovered_mod"
+
+
+class Enhancer3dGencodeAnnotationDatasetType(StrEnum):
+    GTF = "gtf"
+    TSV_LIFTOVERED_REF = "tsv_liftovered_ref"
+    TSV_LIFTOVERED_MOD = "tsv_liftovered_mod"
+
+
 class Enhancer3dProjectDataset(BaseModel):
+    # Ensemble dataset
     ensemble_id: str
     ensemble_region: ChromatinRegion
+
+    # Enhancer Atlas dataset
+    enhancer_atlas_dataset_name: str
+    enhancer_atlas_dataset_type: Enhancer3dEnhancerAtlasDatasetType = Enhancer3dEnhancerAtlasDatasetType.BED
+
+    # Gencode annotation dataset
+    gencode_annotation_dataset_name: str
+    gencode_annotation_dataset_type: Enhancer3dGencodeAnnotationDatasetType = Enhancer3dGencodeAnnotationDatasetType.GTF
 
 
 Enhancer3dProjectDatasetList = RootModel[List[Enhancer3dProjectDataset]]
 
 
 class Enhancer3dProjectConfiguration(BaseModel):
-    enhancer_atlas_dataset_name: str
-    gencode_annotation_dataset_name: str
     base_pair_linear_distance_threshold: Optional[int] = None
     enhancer_promoter_pairs_chunk_size: int = 10000
