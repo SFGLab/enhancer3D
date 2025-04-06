@@ -1,10 +1,9 @@
-import asyncio
 from datetime import timedelta
 
 from temporalio import workflow
 
 from repacker.models import Repack3dgnomeModelEnsembleWorkflowInput, Repack3dgnomeModelEnsembleActivityInput, Repack3dgnomeManyModelEnsemblesWorkflowInput, ListAllModelsInBucketActivityInput
-from utils.workflow_utils import get_default_retry_policy
+from utils.workflow_utils import get_default_retry_policy, execute_activities_in_batches
 
 with workflow.unsafe.imports_passed_through():
     from .activities import repack_3dgnome_model_ensemble_from_bucket, list_all_models_in_bucket
@@ -40,19 +39,18 @@ class Repack3dgnomeManyModelEnsemblesWorkflow:
             retry_policy=get_default_retry_policy()
         )
 
-        repacking_activities = [
-            workflow.execute_activity(
-                activity=repack_3dgnome_model_ensemble_from_bucket,
-                arg=Repack3dgnomeModelEnsembleActivityInput(
+        await execute_activities_in_batches(
+            activity=repack_3dgnome_model_ensemble_from_bucket,
+            activity_args_list=[
+                Repack3dgnomeModelEnsembleActivityInput(
                     source_data_path=model_path,
                     target_data_path=input.target_data_path,
                     source_model_ensemble_name="_".join(filter(None, model_path.split("/"))),
                     source_model_name=None,
-                ),
-                start_to_close_timeout=timedelta(minutes=30),
-                retry_policy=get_default_retry_policy()
-            )
-            for model_path in list_all_models_in_bucket_response.model_paths
-        ]
-
-        await asyncio.gather(*repacking_activities)
+                )
+                for model_path in list_all_models_in_bucket_response.model_paths
+            ],
+            batch_size=100,
+            start_to_close_timeout=timedelta(minutes=30),
+            retry_policy=get_default_retry_policy()
+        )
