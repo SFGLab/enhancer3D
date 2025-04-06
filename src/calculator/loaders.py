@@ -125,6 +125,10 @@ def load_gencode_annotation_dataset_from_filesystem_tsv_liftovered_ref(fs: Abstr
 
         dataset = dataset[["gene_id", "gene_chr_ref", "gene_start_ref", "gene_end_ref", "gene_strand"]]
         dataset = dataset.rename(columns={"gene_chr_ref": "Chromosome", "gene_start_ref": "Start", "gene_end_ref": "End", "gene_strand": "Strand"})
+
+        # Set Feature to gene
+        dataset["Feature"] = "gene"
+
         dataset = dataset.astype({"Chromosome": "str", "Start": "int", "End": "int", "Strand": "str"})
         return dataset
 
@@ -140,6 +144,10 @@ def load_gencode_annotation_dataset_from_filesystem_tsv_liftovered_mod(fs: Abstr
 
         dataset = dataset[["gene_id", "gene_chr_mod", "gene_start_mod", "gene_end_mod", "gene_strand"]]
         dataset = dataset.rename(columns={"gene_chr_mod": "Chromosome", "gene_start_mod": "Start", "gene_end_mod": "End", "gene_strand": "Strand"})
+
+        # Set Feature to gene
+        dataset["Feature"] = "gene"
+
         dataset = dataset.astype({"Chromosome": "str", "Start": "int", "End": "int", "Strand": "str"})
         return dataset
 
