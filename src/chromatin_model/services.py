@@ -7,6 +7,7 @@ from chromatin_model.loaders.gnome import load_3dgnome_model_ensemble_from_files
 from chromatin_model.packers import pack_chromatin_model_ensemble_to_filesystem
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def repack_3dgnome_model_ensemble(

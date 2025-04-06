@@ -15,7 +15,7 @@ class Repack3dgnomeModelEnsembleWorkflow:
 
     @workflow.run
     async def run(self, input: Repack3dgnomeModelEnsembleWorkflowInput) -> None:
-        await workflow.execute_local_activity(
+        await workflow.execute_activity(
             activity=repack_3dgnome_model_ensemble_from_bucket,
             arg=Repack3dgnomeModelEnsembleActivityInput(
                 source_data_path=input.source_data_path,
@@ -33,7 +33,7 @@ class Repack3dgnomeManyModelEnsemblesWorkflow:
 
     @workflow.run
     async def run(self, input: Repack3dgnomeManyModelEnsemblesWorkflowInput) -> None:
-        list_all_models_in_bucket_response = await workflow.execute_local_activity(
+        list_all_models_in_bucket_response = await workflow.execute_activity(
             activity=list_all_models_in_bucket,
             arg=ListAllModelsInBucketActivityInput(base_paths=input.source_paths),
             start_to_close_timeout=timedelta(hours=2),
@@ -41,7 +41,7 @@ class Repack3dgnomeManyModelEnsemblesWorkflow:
         )
 
         repacking_activities = [
-            workflow.execute_local_activity(
+            workflow.execute_activity(
                 activity=repack_3dgnome_model_ensemble_from_bucket,
                 arg=Repack3dgnomeModelEnsembleActivityInput(
                     source_data_path=model_path,

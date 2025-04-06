@@ -1,4 +1,3 @@
-import logging
 import os
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime
@@ -16,8 +15,6 @@ from database.services import upsert_many_database_models
 from distance_calculation.services import hydrate_enhancer_dataset_with_ensemble_data, hydrate_gencode_dataset_with_ensemble_data, extract_regional_genes_and_enhancers_for_ensemble, extract_full_genes_and_enhancers_for_ensemble, select_potential_enhances_gene_pairs, calculate_distances_for_potential_enhancer_gene_pairs
 from utils.filesystem_utils import get_bucket_filesystem
 
-logger = logging.getLogger(__name__)
-
 
 @activity.defn
 def preload_datasets_for_project(input: PreloadDatasetsForProjectActivityInput) -> None:
@@ -26,7 +23,7 @@ def preload_datasets_for_project(input: PreloadDatasetsForProjectActivityInput) 
     processing_bucket = os.getenv("PROCESSING_BUCKET", "processing")
     model_repository_bucket = os.getenv("MODEL_REPOSITORY_BUCKET", "model-repository")
 
-    logger.info(f"Preloading datasets from buckets processing={processing_bucket}, model_repository={model_repository_bucket}")
+    activity.logger.info(f"Preloading datasets from buckets processing={processing_bucket}, model_repository={model_repository_bucket}")
 
     enhancer_atlas_dataset_path = os.path.join(processing_bucket, "enhancer_atlas")
     gencode_annotation_dataset_path = os.path.join(processing_bucket, "gencode")
@@ -91,7 +88,7 @@ def find_potential_pairs_of_enhancers_promoters_for_project(input: FindPotential
         "enhancer_promoter_pairs",
         dataset.ensemble_id
     )
-    logger.info(f"Starting Enhancer3D project {project}, chunks will be output to {project_enhancer_promoter_chunks_path}")
+    activity.logger.info(f"Starting Enhancer3D project {project}, chunks will be output to {project_enhancer_promoter_chunks_path}")
 
     enhancer_atlas_dataset = load_enhancer_atlas_dataset_from_filesystem(
         bucket_fs,
@@ -122,7 +119,7 @@ def find_potential_pairs_of_enhancers_promoters_for_project(input: FindPotential
         ensemble=ensemble
     )
 
-    logger.info(f"Extracting genes and enhancers for the project {project}")
+    activity.logger.info(f"Extracting genes and enhancers for the project {project}")
     regional_genes_and_enhancers_dataset = extract_regional_genes_and_enhancers_for_ensemble(
         ensemble_region=dataset.ensemble_region,
         ensemble=ensemble,
@@ -130,7 +127,7 @@ def find_potential_pairs_of_enhancers_promoters_for_project(input: FindPotential
         hydrated_gencode_dataset=hydrated_gencode_dataset
     )
 
-    logger.info(f"Extracting full genes and enhancers for the project {project}")
+    activity.logger.info(f"Extracting full genes and enhancers for the project {project}")
     full_genes_and_enhancers_dataset = extract_full_genes_and_enhancers_for_ensemble(
         hydrated_enhancer_dataset=hydrated_enhancer_dataset,
         hydrated_gencode_dataset=hydrated_gencode_dataset,
@@ -138,7 +135,7 @@ def find_potential_pairs_of_enhancers_promoters_for_project(input: FindPotential
         regional_genes_and_enhancers_dataset=regional_genes_and_enhancers_dataset
     )
 
-    logger.info(f"Joining enhancers and genes together, base_pair_linear_distance_threshold={configuration.base_pair_linear_distance_threshold}")
+    activity.logger.info(f"Joining enhancers and genes together, base_pair_linear_distance_threshold={configuration.base_pair_linear_distance_threshold}")
     potential_enhancer_gene_pairs = select_potential_enhances_gene_pairs(
         full_genes_and_enhancers_dataset=full_genes_and_enhancers_dataset,
         base_pair_linear_distance_threshold=configuration.base_pair_linear_distance_threshold
@@ -151,7 +148,7 @@ def find_potential_pairs_of_enhancers_promoters_for_project(input: FindPotential
         for i in range(0, len(potential_enhancer_gene_pairs), configuration.enhancer_promoter_pairs_chunk_size)
     ]
 
-    logger.info(f"Writing enhancer-promoter pairs to the filesystem, {len(chunked_potential_enhancer_gene_pairs)} chunks")
+    activity.logger.info(f"Writing enhancer-promoter pairs to the filesystem, {len(chunked_potential_enhancer_gene_pairs)} chunks")
 
     def write_chunk_to_filesystem(chunk_entry: Tuple[int, pd.DataFrame]) -> str:
         bucket_fs = get_bucket_filesystem()
@@ -201,7 +198,7 @@ def calculate_distances_for_enhancer_promoters_chunk(input: CalculateDistancesFo
         dataset.ensemble_id
     )
 
-    logger.info(f"Calculating distances for enhancer-promoter pairs chunk {enhancers_promoters_chunk_path}, output will be written to {distances_chunk_path}")
+    activity.logger.info(f"Calculating distances for enhancer-promoter pairs chunk {enhancers_promoters_chunk_path}, output will be written to {distances_chunk_path}")
 
     with bucket_fs.open(enhancers_promoters_chunk_path, "rb") as f:
         enhancer_promoter_pairs = pd.read_parquet(f)
@@ -252,7 +249,7 @@ def persist_distances_for_enhancer_promoters_chunk(input: PersistDistancesForEnh
         for _, row in distances.iterrows()
     ]
 
-    logger.info(f"Persisting distances for enhancer-promoter pairs chunk {distances_chunk_path}")
+    activity.logger.info(f"Persisting distances for enhancer-promoter pairs chunk {distances_chunk_path}")
     upsert_many_database_models(
         database_name=enhancer3d_database_name,
         collection_name=distance_calculation_collection_name,
