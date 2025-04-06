@@ -17,34 +17,25 @@ services:
             - "8080:8080"
 
     app_repacker:
-        develop:
-            watch:
-                -   action: rebuild
-                    path: ../src
-                    target: /app/src
-                -   action: rebuild
-                    path: ../requirements.txt
-        restart: no
+        profiles:
+            - "donotstart"
 
     app_calculator:
-        develop:
-            watch:
-                -   action: rebuild
-                    path: ../src
-                    target: /app/src
-                -   action: rebuild
-                    path: ../requirements.txt
-        restart: no
+        profiles:
+            - "donotstart"
 
     spark-master:
-        ports:
-            - "8081:8080"
-            - "7077:7077"
+        profiles:
+            - "donotstart"
 
     spark-worker:
-        ports:
-            - "8082:8081"
+        profiles:
+            - "donotstart"
+
+    livy:
+        profiles:
+            - "donotstart"
 
     jupyter:
-        ports:
-            - "8888:8888"
+        profiles:
+            - "donotstart"

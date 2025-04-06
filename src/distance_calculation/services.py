@@ -2,7 +2,7 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from pybedtools import BedTool
+import pyranges as pr
 
 from chromatin_model.models import ChromatinModelEnsemble
 from common.models import ChromatinRegion
@@ -53,30 +53,42 @@ def extract_regional_genes_and_enhancers_for_ensemble(
     region_start = ensemble.first_bin
     region_end = ensemble.last_bin
 
-    region_bed = BedTool([(region_chr, region_start, region_end)])
+    region_pr = pr.PyRanges({
+        "Chromosome": [region_chr],
+        "Start": [region_start],
+        "End": [region_end],
+    })
 
-    genes_bed = BedTool.from_dataframe(
-        hydrated_gencode_dataset
-        # .loc[hydrated_gencode_dataset['gene_affected_by_svs'].isna()]
-        .reset_index()
-        [['gene_chr', 'gene_start', 'gene_end', 'index']]
-        .astype({'gene_start': 'int32', 'gene_end': 'int32'})
+    enhancers_pr = pr.PyRanges(
+        hydrated_enhancer_dataset.rename(columns={
+            "enh_chr": "Chromosome",
+            "enh_start": "Start",
+            "enh_end": "End",
+        })
     )
 
-    enhancers_bed = BedTool.from_dataframe(
-        hydrated_enhancer_dataset
-        # .loc[hydrated_enhancer_dataset['enh_affected_by_svs'].isna()]
-        .reset_index()
-        [['enh_chr', 'enh_start', 'enh_end', 'index']]
-        .astype({'enh_start': 'int32', 'enh_end': 'int32'})
+    genes_pr = pr.PyRanges(
+        hydrated_gencode_dataset.rename(columns={
+            "gene_chr": "Chromosome",
+            "gene_start": "Start",
+            "gene_end": "End",
+        })
     )
 
-    enhancers_region = enhancers_bed.intersect(region_bed, f=1)
-    genes_region = genes_bed.intersect(region_bed, f=1)
+    genes_region = genes_pr.intersect(region_pr, multiple="containment")
+    enhancers_region = enhancers_pr.intersect(region_pr, multiple="containment")
 
     return RegionalGenesAndEnhancersDataset(
-        enhancers_per_ensemble_region_dataset=enhancers_region.to_dataframe(),
-        genes_per_ensemble_region_dataset=genes_region.to_dataframe(),
+        enhancers_per_ensemble_region_dataset=enhancers_region.rename({
+            "Chromosome": "enh_chr",
+            "Start": "enh_start",
+            "End": "enh_end",
+        }),
+        genes_per_ensemble_region_dataset=genes_region.rename({
+            "Chromosome": "gene_chr",
+            "Start": "gene_start",
+            "End": "gene_end",
+        })
     )
 
 
@@ -89,14 +101,14 @@ def extract_full_genes_and_enhancers_for_ensemble(
     region_start = ensemble.first_bin
     resolution = ensemble.resolution
 
-    full_genes_mask = hydrated_gencode_dataset.index.isin(regional_genes_and_enhancers_dataset.genes_per_ensemble_region_dataset['name'])
+    full_genes_mask = hydrated_gencode_dataset.index.isin(regional_genes_and_enhancers_dataset.genes_per_ensemble_region_dataset.index)
     full_genes_for_region = (
         hydrated_gencode_dataset
         .loc[full_genes_mask]
         .astype({'gene_start': 'int32', 'gene_end': 'int32'})
     )
 
-    full_enhancers_mask = hydrated_enhancer_dataset.index.isin(regional_genes_and_enhancers_dataset.enhancers_per_ensemble_region_dataset['name'])
+    full_enhancers_mask = hydrated_enhancer_dataset.index.isin(regional_genes_and_enhancers_dataset.enhancers_per_ensemble_region_dataset.index)
     full_enhancers_for_region = (
         hydrated_enhancer_dataset
         .loc[full_enhancers_mask]

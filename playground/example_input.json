@@ -1,78 +1,116 @@
 {
-  "project": {
-    "id": "GM12878_demo_project",
-    "author": "Nik Kozlov",
-    "species": "hg38",
-    "cell_line": "GM12878"
-  },
-  "datasets": [
-    {
-      "ensemble_id": "results_GM12878_Deni_chr1_74280_3521135",
-      "ensemble_region": {
-        "chromosome": "chr1",
-        "start": 74280,
-        "end": 3521135
-      }
+    "project": {
+        "id": "GM12878_demo_project",
+        "authors": [
+            "Nik Kozlov"
+        ],
+        "species": [
+            "Homo Sapiens"
+        ],
+        "cell_lines": [
+            "GM12878"
+        ]
     },
-    {
-      "ensemble_id": "results_GM12878_Deni_mod_chr1_74280_3521135",
-      "ensemble_region": {
-        "chromosome": "chr1",
-        "start": 74280,
-        "end": 3521135
-      }
-    },
-    {
-      "ensemble_id": "results_GM12878_Deni_chr1_12398267_14398571",
-      "ensemble_region": {
-        "chromosome": "chr1",
-        "start": 12398267,
-        "end": 14398571
-      }
-    },
-    {
-      "ensemble_id": "results_GM12878_Deni_mod_chr1_12398267_14398571",
-      "ensemble_region": {
-        "chromosome": "chr1",
-        "start": 12398267,
-        "end": 14398571
-      }
-    },
-    {
-      "ensemble_id": "results_GM12878_Deni_chr1_15415396_17422207",
-      "ensemble_region": {
-        "chromosome": "chr1",
-        "start": 15415396,
-        "end": 17422207
-      }
-    },
-    {
-      "ensemble_id": "results_GM12878_Deni_mod_chr1_15415396_17422207",
-      "ensemble_region": {
-        "chromosome": "chr1",
-        "start": 15415396,
-        "end": 17422207
-      }
-    },
-    {
-      "ensemble_id": "results_GM12878_Deni_chr1_18268944_20287760",
-      "ensemble_region": {
-        "chromosome": "chr1",
-        "start": 18268944,
-        "end": 20287760
-      }
-    },
-    {
-      "ensemble_id": "results_GM12878_Deni_chr1_mod_18268944_20287760",
-      "ensemble_region": {
-        "chromosome": "chr1",
-        "start": 18268944,
-        "end": 20287760
-      }
+    "datasets": [
+        {
+            "ensemble_id": "results_GM12878_Deni_chr1_74280_3521135",
+            "ensemble_region": {
+                "chromosome": "chr1",
+                "start": 74280,
+                "end": 3521135
+            },
+            "enhancer_atlas_dataset_name": "enchancers.GM12878",
+            "enhancer_atlas_dataset_type": "bed",
+            "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+            "gencode_annotation_dataset_type": "gtf"
+        },
+        {
+            "ensemble_id": "results_GM12878_Deni_mod_chr1_74280_3521135",
+            "ensemble_region": {
+                "chromosome": "chr1",
+                "start": 74280,
+                "end": 3521135
+            },
+            "enhancer_atlas_dataset_name": "enchancers.GM12878",
+            "enhancer_atlas_dataset_type": "bed",
+            "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+            "gencode_annotation_dataset_type": "gtf"
+        },
+        {
+            "ensemble_id": "results_GM12878_Deni_chr1_12398267_14398571",
+            "ensemble_region": {
+                "chromosome": "chr1",
+                "start": 12398267,
+                "end": 14398571
+            },
+            "enhancer_atlas_dataset_name": "enchancers.GM12878",
+            "enhancer_atlas_dataset_type": "bed",
+            "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+            "gencode_annotation_dataset_type": "gtf"
+        },
+        {
+            "ensemble_id": "results_GM12878_Deni_mod_chr1_12398267_14398571",
+            "ensemble_region": {
+                "chromosome": "chr1",
+                "start": 12398267,
+                "end": 14398571
+            },
+            "enhancer_atlas_dataset_name": "enchancers.GM12878",
+            "enhancer_atlas_dataset_type": "bed",
+            "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+            "gencode_annotation_dataset_type": "gtf"
+        },
+        {
+            "ensemble_id": "results_GM12878_Deni_chr1_15415396_17422207",
+            "ensemble_region": {
+                "chromosome": "chr1",
+                "start": 15415396,
+                "end": 17422207
+            },
+            "enhancer_atlas_dataset_name": "enchancers.GM12878",
+            "enhancer_atlas_dataset_type": "bed",
+            "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+            "gencode_annotation_dataset_type": "gtf"
+        },
+        {
+            "ensemble_id": "results_GM12878_Deni_mod_chr1_15415396_17422207",
+            "ensemble_region": {
+                "chromosome": "chr1",
+                "start": 15415396,
+                "end": 17422207
+            },
+            "enhancer_atlas_dataset_name": "enchancers.GM12878",
+            "enhancer_atlas_dataset_type": "bed",
+            "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+            "gencode_annotation_dataset_type": "gtf"
+        },
+        {
+            "ensemble_id": "results_GM12878_Deni_chr1_18268944_20287760",
+            "ensemble_region": {
+                "chromosome": "chr1",
+                "start": 18268944,
+                "end": 20287760
+            },
+            "enhancer_atlas_dataset_name": "enchancers.GM12878",
+            "enhancer_atlas_dataset_type": "bed",
+            "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+            "gencode_annotation_dataset_type": "gtf"
+        },
+        {
+            "ensemble_id": "results_GM12878_Deni_chr1_mod_18268944_20287760",
+            "ensemble_region": {
+                "chromosome": "chr1",
+                "start": 18268944,
+                "end": 20287760
+            },
+            "enhancer_atlas_dataset_name": "enchancers.GM12878",
+            "enhancer_atlas_dataset_type": "bed",
+            "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+            "gencode_annotation_dataset_type": "gtf"
+        }
+    ],
+    "configuration": {
+        "base_pair_linear_distance_threshold": null,
+        "enhancer_promoter_pairs_chunk_size": 10000
     }
-  ],
-  "configuration": {
-    "enhancer_atlas_dataset_name": "enchancers.GM12878",
-    "gencode_annotation_dataset_name": "gencode.v40.basic.annotation"
-  }
 }
