@@ -32,6 +32,7 @@ def repack_3dgnome_model_ensemble_from_bucket(input: Repack3dgnomeModelEnsembleA
         fs=bucket_fs,
         source_data_path=source_data_path_with_bucket,
         target_data_path=target_data_path_with_bucket,
+        source_model_ensemble_name=input.source_model_ensemble_name,
         source_model_name=input.source_model_name,
     )
 

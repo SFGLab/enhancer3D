@@ -13,6 +13,7 @@ def repack_3dgnome_model_ensemble(
     fs: AbstractFileSystem,
     source_data_path: str,
     target_data_path: str,
+    source_model_ensemble_name: Optional[str] = None,
     source_model_name: Optional[str] = None,
 ) -> None:
     if not fs.exists(source_data_path):
@@ -22,5 +23,11 @@ def repack_3dgnome_model_ensemble(
         raise ValueError(f'Target data path {target_data_path} does not exist')
 
     logger.info(f'Repacking 3DGNOME model ensemble from {source_data_path} to {target_data_path}')
-    model_ensemble = load_3dgnome_model_ensemble_from_filesystem(fs, source_data_path, model_name=source_model_name)
+    model_ensemble = load_3dgnome_model_ensemble_from_filesystem(
+        fs,
+        source_data_path,
+        model_ensemble_name=source_model_ensemble_name,
+        model_name=source_model_name
+    )
+
     pack_chromatin_model_ensemble_to_filesystem(fs, target_data_path, model_ensemble)

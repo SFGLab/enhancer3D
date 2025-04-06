@@ -164,15 +164,22 @@ def load_3dgnome_model_from_filesystem(fs: AbstractFileSystem, base_path: str, m
     )
 
 
-def load_3dgnome_model_ensemble_from_filesystem(fs: AbstractFileSystem, base_path: str, model_name: Optional[str] = None) -> ChromatinModelEnsemble:
+def load_3dgnome_model_ensemble_from_filesystem(
+    fs: AbstractFileSystem,
+    base_path: str,
+    model_ensemble_name: Optional[str] = None,
+    model_name: Optional[str] = None,
+) -> ChromatinModelEnsemble:
     if not fs.exists(base_path):
         raise ValueError(f'Base path {base_path} does not exist')
+
+    if model_ensemble_name is None:
+        model_ensemble_name = os.path.basename(base_path)
+        logger.debug(f'Detected model ensemble name {model_ensemble_name} from path')
 
     if model_name is None:
         model_name = _3dgnome_model_detect_name_from_path(fs, base_path)
         logger.debug(f'Detected model name {model_name} from path')
-
-    model_ensemble_name = os.path.basename(base_path)
 
     model_files = [
         os.path.basename(f)

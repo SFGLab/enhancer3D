@@ -22,7 +22,7 @@ class CalculateDistancesForProjectWorkflow:
                 datasets=input.datasets,
                 configuration=input.configuration
             ),
-            schedule_to_close_timeout=timedelta(minutes=30),
+            start_to_close_timeout=timedelta(minutes=30),
             retry_policy=get_default_retry_policy()
         )
 
@@ -33,7 +33,7 @@ class CalculateDistancesForProjectWorkflow:
                 datasets=input.datasets,
                 configuration=input.configuration
             ),
-            schedule_to_close_timeout=timedelta(minutes=30),
+            start_to_close_timeout=timedelta(minutes=30),
             retry_policy=get_default_retry_policy()
         )
 
@@ -45,7 +45,7 @@ class CalculateDistancesForProjectWorkflow:
                     dataset=dataset,
                     configuration=input.configuration
                 ),
-                schedule_to_close_timeout=timedelta(minutes=30),
+                start_to_close_timeout=timedelta(minutes=30),
                 retry_policy=get_default_retry_policy()
             )
             for dataset in input.datasets
@@ -77,7 +77,7 @@ class CalculateDistancesForProjectWorkflow:
                     dataset=output.dataset,
                     distances_chunk_path=output.distances_chunk_path
                 ),
-                schedule_to_close_timeout=timedelta(minutes=30),
+                start_to_close_timeout=timedelta(minutes=30),
                 retry_policy=get_default_retry_policy()
             )
             for output in calculation_outputs

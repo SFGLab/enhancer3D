@@ -20,9 +20,10 @@ class Repack3dgnomeModelEnsembleWorkflow:
             arg=Repack3dgnomeModelEnsembleActivityInput(
                 source_data_path=input.source_data_path,
                 target_data_path=input.target_data_path,
+                source_model_ensemble_name=input.source_model_ensemble_name,
                 source_model_name=input.source_model_name,
             ),
-            schedule_to_close_timeout=timedelta(minutes=5),
+            start_to_close_timeout=timedelta(minutes=30),
             retry_policy=get_default_retry_policy()
         )
 
@@ -35,7 +36,7 @@ class Repack3dgnomeManyModelEnsemblesWorkflow:
         list_all_models_in_bucket_response = await workflow.execute_local_activity(
             activity=list_all_models_in_bucket,
             arg=ListAllModelsInBucketActivityInput(base_paths=input.source_paths),
-            schedule_to_close_timeout=timedelta(minutes=5),
+            start_to_close_timeout=timedelta(hours=2),
             retry_policy=get_default_retry_policy()
         )
 
@@ -45,9 +46,10 @@ class Repack3dgnomeManyModelEnsemblesWorkflow:
                 arg=Repack3dgnomeModelEnsembleActivityInput(
                     source_data_path=model_path,
                     target_data_path=input.target_data_path,
+                    source_model_ensemble_name="_".join(filter(None, model_path.split("/"))),
                     source_model_name=None,
                 ),
-                schedule_to_close_timeout=timedelta(minutes=5),
+                start_to_close_timeout=timedelta(minutes=30),
                 retry_policy=get_default_retry_policy()
             )
             for model_path in list_all_models_in_bucket_response.model_paths
