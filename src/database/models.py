@@ -7,8 +7,9 @@ from utils.pydantic_utils import BaseDatabaseModel
 class DistanceCalculationEntry(BaseDatabaseModel):
     # Project
     project_id: str
-    project_author: str
-    project_cell_line: str
+    project_authors: List[str]
+    project_species: List[str]
+    project_cell_lines: List[str]
     project_executed_at: datetime
 
     # Ensemble

@@ -213,8 +213,9 @@ def persist_distances_for_enhancer_promoters_chunk(input: PersistDistancesForEnh
     distances_data = [
         DistanceCalculationEntry.model_validate({
             'project_id': project.id,
-            'project_author': project.author,
-            'project_cell_line': project.cell_line,
+            'project_authors': project.authors,
+            'project_species': project.species,
+            'project_cell_lines': project.cell_lines,
             'project_executed_at': executed_at,
             'ensemble_id': dataset.ensemble_id,
             **row.to_dict(),

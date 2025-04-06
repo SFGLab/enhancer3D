@@ -99,9 +99,9 @@ class ChromatinRegion(BaseModel):
 
 class Enhancer3dProject(BaseModel):
     id: str
-    author: Optional[str] = None
-    species: str
-    cell_line: str
+    authors: List[str] = []
+    species: List[str] = []
+    cell_lines: List[str] = []
 
 
 class Enhancer3dEnhancerAtlasDatasetType(StrEnum):
