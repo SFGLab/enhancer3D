@@ -17,11 +17,8 @@
         <entry key="$PROJECT_DIR$/.idea/enhancer3D.iml">
           <value>
             <JupyterConnectionParameters>
-              <option name="authType" value="notebook" />
-              <option name="urlString" value="http://localhost:8810/" />
-              <authParams2>
-                <map />
-              </authParams2>
+              <option name="managed" value="true" />
+              <option name="sdkName" value="" />
             </JupyterConnectionParameters>
           </value>
         </entry>

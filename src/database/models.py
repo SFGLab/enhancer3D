@@ -31,6 +31,7 @@ class DistanceCalculationEntry(BaseDatabaseModel):
     gene_model_coloring_start: int
     gene_model_coloring_end: int
     gene_TSS_pos: int
+    gene_type: str
 
     # Enhancer
     enh_id: str

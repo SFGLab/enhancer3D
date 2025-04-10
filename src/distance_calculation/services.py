@@ -33,13 +33,14 @@ def hydrate_gencode_dataset_with_ensemble_data(
     hydrated_gencode_dataset = gencode_annotation_dataset[gencode_annotation_dataset['Feature'] == 'gene']
     hydrated_gencode_dataset = hydrated_gencode_dataset.rename(columns={
         'gene_id': 'gene_id',
+        'gene_type': 'gene_type',
         'Chromosome': 'gene_chr',
         'Start': 'gene_start',
         'End': 'gene_end',
         'Strand': 'gene_strand',
     })
 
-    hydrated_gencode_dataset = hydrated_gencode_dataset[['gene_id', 'gene_chr', 'gene_start', 'gene_end', 'gene_strand']]
+    hydrated_gencode_dataset = hydrated_gencode_dataset[['gene_id', 'gene_type', 'gene_chr', 'gene_start', 'gene_end', 'gene_strand']]
     return hydrated_gencode_dataset
 
 

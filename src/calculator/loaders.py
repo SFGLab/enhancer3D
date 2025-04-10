@@ -109,7 +109,7 @@ def load_gencode_annotation_dataset_from_filesystem_gtf(fs: AbstractFileSystem, 
             with fs.open(os.path.join(data_path, f"{dataset_name}-prepared.parquet"), "wb") as prepared_dataset_file:
                 prepared_gencode_dataset.to_parquet(prepared_dataset_file)
 
-            return prepared_gencode_dataset[["gene_id", "Chromosome", "Start", "End", "Strand"]]
+            return prepared_gencode_dataset[["gene_id", "gene_type", "Chromosome", "Start", "End", "Strand"]]
 
 
 def load_gencode_annotation_dataset_from_filesystem_tsv_liftovered_ref(fs: AbstractFileSystem, data_path: str, dataset_name: str) -> pd.DataFrame:
@@ -119,11 +119,12 @@ def load_gencode_annotation_dataset_from_filesystem_tsv_liftovered_ref(fs: Abstr
 
         dataset = dataset[["gene_info", "gene_chr_ref", "gene_start_ref", "gene_end_ref", "gene_strand"]]
 
-        # Extract gene_id from gene_info
+        # Extract gene_id from gene_info, gene_type from gene_info
         dataset["gene_id"] = dataset["gene_info"].str.extract(r'gene_id "([^"]+)"')[0]
+        dataset["gene_type"] = dataset["gene_info"].str.extract(r'gene_type "([^"]+)"')[0]
         dataset = dataset.drop(columns=["gene_info"])
 
-        dataset = dataset[["gene_id", "gene_chr_ref", "gene_start_ref", "gene_end_ref", "gene_strand"]]
+        dataset = dataset[["gene_id", "gene_type", "gene_chr_ref", "gene_start_ref", "gene_end_ref", "gene_strand"]]
         dataset = dataset.rename(columns={"gene_chr_ref": "Chromosome", "gene_start_ref": "Start", "gene_end_ref": "End", "gene_strand": "Strand"})
 
         # Set Feature to gene
@@ -138,11 +139,12 @@ def load_gencode_annotation_dataset_from_filesystem_tsv_liftovered_mod(fs: Abstr
         dataset = pd.read_csv(dataset_file, sep="\t")
         dataset = dataset.dropna(subset=["gene_info", "gene_chr_mod", "gene_start_mod", "gene_end_mod", "gene_strand"])
 
-        # Extract gene_id from gene_info
+        # Extract gene_id from gene_info, gene_type from gene_info
         dataset["gene_id"] = dataset["gene_info"].str.extract(r'gene_id "([^"]+)"')[0]
+        dataset["gene_type"] = dataset["gene_info"].str.extract(r'gene_type "([^"]+)"')[0]
         dataset = dataset.drop(columns=["gene_info"])
 
-        dataset = dataset[["gene_id", "gene_chr_mod", "gene_start_mod", "gene_end_mod", "gene_strand"]]
+        dataset = dataset[["gene_id", "gene_type", "gene_chr_mod", "gene_start_mod", "gene_end_mod", "gene_strand"]]
         dataset = dataset.rename(columns={"gene_chr_mod": "Chromosome", "gene_start_mod": "Start", "gene_end_mod": "End", "gene_strand": "Strand"})
 
         # Set Feature to gene
