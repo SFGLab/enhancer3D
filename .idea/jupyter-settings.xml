@@ -6,9 +6,6 @@
         <JupyterConnectionParameters>
           <option name="authType" value="notebook" />
           <option name="urlString" value="http://localhost:8810/" />
-          <authParams2>
-            <map />
-          </authParams2>
         </JupyterConnectionParameters>
       </list>
     </option>
