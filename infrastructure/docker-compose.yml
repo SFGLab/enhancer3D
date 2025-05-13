@@ -170,6 +170,8 @@ services:
             interval: 10s
             timeout: 10s
             retries: 5
+        volumes:
+            - ../:/work
         networks:
             - enhancer3d-network
 
@@ -195,6 +197,8 @@ services:
             retries: 5
         depends_on:
             - spark-master
+        volumes:
+            - ../:/work
         networks:
             - enhancer3d-network
 
