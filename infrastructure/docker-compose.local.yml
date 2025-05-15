@@ -4,9 +4,21 @@ services:
             - "9000:9000"
             - "9001:9001"
 
-    mongo:
+#    mongo:
+#        ports:
+#            - "27017:27017"
+
+    scylla-master:
         ports:
-            - "27017:27017"
+            - "9042:9042"
+
+    scylla-seed-1:
+        profiles:
+            - "donotstart"
+
+    scylla-seed-2:
+        profiles:
+            - "donotstart"
 
     temporal:
         ports:

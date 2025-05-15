@@ -20,6 +20,7 @@ class BaseDatabaseModel(ABC, BaseModel):
         )
 
 
+
 class BaseHashableModel(BaseModel):
 
     def __hash__(self):

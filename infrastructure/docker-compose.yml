@@ -18,23 +18,71 @@ services:
         networks:
             - enhancer3d-network
 
-    mongo:
-        image: mongo:${MONGO_VERSION}
-        container_name: mongo
-        command: ["--config", "/etc/mongod.conf"]
+#    mongo:
+#        image: mongo:${MONGO_VERSION}
+#        container_name: mongo
+#        command: ["--config", "/etc/mongod.conf"]
+#        expose:
+#            - "27017"
+#        healthcheck:
+#            test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+#            interval: 10s
+#            timeout: 10s
+#            retries: 5
+#        volumes:
+#            - mongo_data:/data/db
+#            - ./config/mongo/mongod.conf:/etc/mongod.conf:ro
+#        environment:
+#            - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+#            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+#        networks:
+#            - enhancer3d-network
+
+    scylla-master:
+        image: scylladb/scylla:${SCYLLA_VERSION}
+        container_name: scylla
+        command: ["--smp=4", "--memory=16G", "--overprovisioned=1"]
         expose:
-            - "27017"
+            - "9042"
         healthcheck:
-            test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+            test: ["CMD", "cqlsh", "-e", "describe cluster"]
             interval: 10s
             timeout: 10s
             retries: 5
         volumes:
-            - mongo_data:/data/db
-            - ./config/mongo/mongod.conf:/etc/mongod.conf:ro
-        environment:
-            - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+            - scylla_master_data:/var/lib/scylla
+        networks:
+            - enhancer3d-network
+
+    scylla-seed-1:
+        image: scylladb/scylla:${SCYLLA_VERSION}
+        container_name: scylla-seed-1
+        command: ["--smp=4", "--memory=16G", "--overprovisioned=1", "--seeds=scylla-master"]
+        expose:
+            - "9042"
+        healthcheck:
+            test: ["CMD", "cqlsh", "-e", "describe cluster"]
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        volumes:
+            - scylla_seed_1_data:/var/lib/scylla
+        networks:
+            - enhancer3d-network
+
+    scylla-seed-2:
+        image: scylladb/scylla:${SCYLLA_VERSION}
+        container_name: scylla-seed-2
+        command: ["--smp=4", "--memory=16G", "--overprovisioned=1", "--seeds=scylla-master"]
+        expose:
+            - "9042"
+        healthcheck:
+            test: ["CMD", "cqlsh", "-e", "describe cluster"]
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        volumes:
+            - scylla_seed_2_data:/var/lib/scylla
         networks:
             - enhancer3d-network
 
@@ -127,7 +175,8 @@ services:
             - BUCKET_SECRET_KEY=${MINIO_SECRET_KEY}
             - TEMPORAL_ENDPOINT=temporal:7233
             - TEMPORAL_NAMESPACE=default
-            - MONGO_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
+#            - MONGO_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
+            - SCYLLA_CONTACT_POINTS=scylla-master,scylla-seed-1,scylla-seed-2
         depends_on:
             - temporal
         networks:
@@ -144,7 +193,8 @@ services:
             - BUCKET_SECRET_KEY=${MINIO_SECRET_KEY}
             - TEMPORAL_ENDPOINT=temporal:7233
             - TEMPORAL_NAMESPACE=default
-            - MONGO_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
+#            - MONGO_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
+            - SCYLLA_CONTACT_POINTS=scylla-master,scylla-seed-1,scylla-seed-2
         depends_on:
             - temporal
         networks:
@@ -237,6 +287,9 @@ networks:
 
 volumes:
     minio_data:
-    mongo_data:
+#    mongo_data:
+    scylla_master_data:
+    scylla_seed_1_data:
+    scylla_seed_2_data:
     temporal_elasticsearch_data:
     temporal_postgresql_data:
