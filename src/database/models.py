@@ -54,7 +54,7 @@ class DistanceCalculationEntry(BaseDatabaseModel):
     number_bins: int
 
     @property
-    def index(self) -> Sequence[str]:
+    def index_fields(self) -> Sequence[str]:
         return [
             'project_id',
             'ensemble_id',

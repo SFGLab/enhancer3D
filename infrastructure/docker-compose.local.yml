@@ -9,6 +9,7 @@ services:
 #            - "27017:27017"
 
     scylla-master:
+        command: ["--smp=4", "--memory=2G", "--overprovisioned=1"]
         ports:
             - "9042:9042"
 

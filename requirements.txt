@@ -17,3 +17,4 @@ pyspark==3.5.3
 matplotlib~=3.10.1
 seaborn~=0.13.2
 scylla-driver~=3.29.0
+cassandra-driver~=3.29.0

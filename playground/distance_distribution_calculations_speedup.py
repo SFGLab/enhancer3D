@@ -60,10 +60,10 @@ def average_binned_distance_matrix(dir_path, Nmodels, file_format='cif'):
 
 
 def set_bin_number_for_models(region_start_ref, region_start_mod, genes, enhancers, df_enhancers_region_ref, df_genes_region_ref, df_enhancers_region_mod, df_genes_region_mod):
-    full_genes_for_region = genes.loc[(genes.index.isin(df_genes_region_ref['name'])) & (
-        genes.index.isin(df_genes_region_mod['name']))].astype({'gene_start_mod': 'int32', 'gene_end_mod': 'int32'})
-    full_enhancers_for_region = enhancers.loc[(enhancers.index.isin(df_enhancers_region_ref['name'])) & (
-        enhancers.index.isin(
+    full_genes_for_region = genes.loc[(genes.index_fields.isin(df_genes_region_ref['name'])) & (
+        genes.index_fields.isin(df_genes_region_mod['name']))].astype({'gene_start_mod': 'int32', 'gene_end_mod': 'int32'})
+    full_enhancers_for_region = enhancers.loc[(enhancers.index_fields.isin(df_enhancers_region_ref['name'])) & (
+        enhancers.index_fields.isin(
             df_enhancers_region_mod['name']))].astype({'enh_start_mod': 'int32', 'enh_end_mod': 'int32'})
     full_enhancers_for_region['enh_center_position_ref'] = (full_enhancers_for_region['enh_start_ref'] +
                                                             full_enhancers_for_region['enh_end_ref']) // 2
