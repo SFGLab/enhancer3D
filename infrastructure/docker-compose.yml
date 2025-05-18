@@ -41,7 +41,7 @@ services:
     scylla-master:
         image: scylladb/scylla:${SCYLLA_VERSION}
         container_name: scylla
-        command: ["--smp=4", "--memory=16G", "--overprovisioned=1"]
+        command: ["--smp=8", "--memory=24G", "--overprovisioned=1"]
         expose:
             - "9042"
         healthcheck:
@@ -57,7 +57,7 @@ services:
     scylla-seed-1:
         image: scylladb/scylla:${SCYLLA_VERSION}
         container_name: scylla-seed-1
-        command: ["--smp=4", "--memory=16G", "--overprovisioned=1", "--seeds=scylla-master"]
+        command: ["--smp=8", "--memory=24G", "--overprovisioned=1", "--seeds=scylla-master"]
         expose:
             - "9042"
         healthcheck:
@@ -73,7 +73,7 @@ services:
     scylla-seed-2:
         image: scylladb/scylla:${SCYLLA_VERSION}
         container_name: scylla-seed-2
-        command: ["--smp=4", "--memory=16G", "--overprovisioned=1", "--seeds=scylla-master"]
+        command: ["--smp=8", "--memory=24G", "--overprovisioned=1", "--seeds=scylla-master"]
         expose:
             - "9042"
         healthcheck:
@@ -176,7 +176,7 @@ services:
             - TEMPORAL_ENDPOINT=temporal:7233
             - TEMPORAL_NAMESPACE=default
 #            - MONGO_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
-            - SCYLLA_CONTACT_POINTS=scylla-master,scylla-seed-1,scylla-seed-2
+            - SCYLLA_CONTACT_POINTS=scylla-master
         depends_on:
             - temporal
         networks:
@@ -194,7 +194,7 @@ services:
             - TEMPORAL_ENDPOINT=temporal:7233
             - TEMPORAL_NAMESPACE=default
 #            - MONGO_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
-            - SCYLLA_CONTACT_POINTS=scylla-master,scylla-seed-1,scylla-seed-2
+            - SCYLLA_CONTACT_POINTS=scylla-master
         depends_on:
             - temporal
         networks:
