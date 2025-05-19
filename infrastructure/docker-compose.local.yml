@@ -4,22 +4,22 @@ services:
             - "9000:9000"
             - "9001:9001"
 
-#    mongo:
-#        ports:
-#            - "27017:27017"
-
-    scylla-master:
-        command: ["--smp=4", "--memory=2G", "--overprovisioned=1"]
+    mongo:
         ports:
-            - "9042:9042"
+            - "27017:27017"
 
-    scylla-seed-1:
-        profiles:
-            - "donotstart"
-
-    scylla-seed-2:
-        profiles:
-            - "donotstart"
+#    scylla-master:
+#        command: ["--smp=4", "--memory=2G", "--overprovisioned=1"]
+#        ports:
+#            - "9042:9042"
+#
+#    scylla-seed-1:
+#        profiles:
+#            - "donotstart"
+#
+#    scylla-seed-2:
+#        profiles:
+#            - "donotstart"
 
     temporal:
         ports:

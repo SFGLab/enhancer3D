@@ -3,16 +3,28 @@ services:
         ports:
             - "9001:9001"
 
-#    mongo:
-#        deploy:
-#            resources:
-#                limits:
-#                    memory: 16g
-#        ulimits:
-#            nofile:
-#                soft: 64000
-#                hard: 64000
-#            nproc: 64000
+    mongo-master:
+        deploy:
+            resources:
+                limits:
+                    memory: 24g
+        ulimits:
+            nofile:
+                soft: 64000
+                hard: 64000
+            nproc: 64000
+
+    mongo-slave:
+        scale: ${MONGO_SLAVE_SCALE}
+        deploy:
+            resources:
+                limits:
+                    memory: 24g
+        ulimits:
+            nofile:
+                soft: 64000
+                hard: 64000
+            nproc: 64000
 
     temporal_ui:
         ports:

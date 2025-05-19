@@ -18,10 +18,10 @@ services:
         networks:
             - enhancer3d-network
 
-    mongo:
+    mongo-master:
         image: mongo:${MONGO_VERSION}
         container_name: mongo
-        command: ["--config", "/etc/mongod.conf"]
+        command: ["--config", "/etc/mongod.conf", "--replSet", "rs0", "--bind_ip_all"]
         expose:
             - "27017"
         healthcheck:
@@ -38,53 +38,68 @@ services:
         networks:
             - enhancer3d-network
 
-    scylla-master:
-        image: scylladb/scylla:${SCYLLA_VERSION}
-        container_name: scylla
-        command: ["--smp=8", "--memory=24G", "--overprovisioned=1"]
+    mongo-slave:
+        image: mongo:${MONGO_VERSION}
+        command: ["--config", "/etc/mongod.conf", "--replSet", "rs0", "--bind_ip_all"]
         expose:
-            - "9042"
+            - "27017"
         healthcheck:
-            test: ["CMD", "cqlsh", "-e", "describe cluster"]
+            test: ["CMD", "mongo", "--eval", "rs.status()"]
             interval: 10s
             timeout: 10s
             retries: 5
         volumes:
-            - scylla_master_data:/var/lib/scylla
+            - ./config/mongo/mongod.conf:/etc/mongod.conf:ro
         networks:
             - enhancer3d-network
 
-    scylla-seed-1:
-        image: scylladb/scylla:${SCYLLA_VERSION}
-        container_name: scylla-seed-1
-        command: ["--smp=8", "--memory=24G", "--overprovisioned=1", "--seeds=scylla-master"]
-        expose:
-            - "9042"
-        healthcheck:
-            test: ["CMD", "cqlsh", "-e", "describe cluster"]
-            interval: 10s
-            timeout: 10s
-            retries: 5
-        volumes:
-            - scylla_seed_1_data:/var/lib/scylla
-        networks:
-            - enhancer3d-network
-
-    scylla-seed-2:
-        image: scylladb/scylla:${SCYLLA_VERSION}
-        container_name: scylla-seed-2
-        command: ["--smp=8", "--memory=24G", "--overprovisioned=1", "--seeds=scylla-master"]
-        expose:
-            - "9042"
-        healthcheck:
-            test: ["CMD", "cqlsh", "-e", "describe cluster"]
-            interval: 10s
-            timeout: 10s
-            retries: 5
-        volumes:
-            - scylla_seed_2_data:/var/lib/scylla
-        networks:
-            - enhancer3d-network
+#    scylla-master:
+#        image: scylladb/scylla:${SCYLLA_VERSION}
+#        container_name: scylla
+#        command: ["--smp=8", "--memory=24G", "--overprovisioned=1"]
+#        expose:
+#            - "9042"
+#        healthcheck:
+#            test: ["CMD", "cqlsh", "-e", "describe cluster"]
+#            interval: 10s
+#            timeout: 10s
+#            retries: 5
+#        volumes:
+#            - scylla_master_data:/var/lib/scylla
+#        networks:
+#            - enhancer3d-network
+#
+#    scylla-seed-1:
+#        image: scylladb/scylla:${SCYLLA_VERSION}
+#        container_name: scylla-seed-1
+#        command: ["--smp=8", "--memory=24G", "--overprovisioned=1", "--seeds=scylla-master"]
+#        expose:
+#            - "9042"
+#        healthcheck:
+#            test: ["CMD", "cqlsh", "-e", "describe cluster"]
+#            interval: 10s
+#            timeout: 10s
+#            retries: 5
+#        volumes:
+#            - scylla_seed_1_data:/var/lib/scylla
+#        networks:
+#            - enhancer3d-network
+#
+#    scylla-seed-2:
+#        image: scylladb/scylla:${SCYLLA_VERSION}
+#        container_name: scylla-seed-2
+#        command: ["--smp=8", "--memory=24G", "--overprovisioned=1", "--seeds=scylla-master"]
+#        expose:
+#            - "9042"
+#        healthcheck:
+#            test: ["CMD", "cqlsh", "-e", "describe cluster"]
+#            interval: 10s
+#            timeout: 10s
+#            retries: 5
+#        volumes:
+#            - scylla_seed_2_data:/var/lib/scylla
+#        networks:
+#            - enhancer3d-network
 
     temporal_elasticsearch:
         image: elasticsearch:${ELASTICSEARCH_VERSION}
@@ -175,8 +190,8 @@ services:
             - BUCKET_SECRET_KEY=${MINIO_SECRET_KEY}
             - TEMPORAL_ENDPOINT=temporal:7233
             - TEMPORAL_NAMESPACE=default
-#            - MONGO_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
-            - SCYLLA_CONTACT_POINTS=scylla-master
+            - MONGO_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
+#            - SCYLLA_CONTACT_POINTS=scylla-master
         depends_on:
             - temporal
         networks:
@@ -193,8 +208,8 @@ services:
             - BUCKET_SECRET_KEY=${MINIO_SECRET_KEY}
             - TEMPORAL_ENDPOINT=temporal:7233
             - TEMPORAL_NAMESPACE=default
-#            - MONGO_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
-            - SCYLLA_CONTACT_POINTS=scylla-master
+            - MONGO_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
+#            - SCYLLA_CONTACT_POINTS=scylla-master
         depends_on:
             - temporal
         networks:
