@@ -18,25 +18,25 @@ services:
         networks:
             - enhancer3d-network
 
-#    mongo:
-#        image: mongo:${MONGO_VERSION}
-#        container_name: mongo
-#        command: ["--config", "/etc/mongod.conf"]
-#        expose:
-#            - "27017"
-#        healthcheck:
-#            test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
-#            interval: 10s
-#            timeout: 10s
-#            retries: 5
-#        volumes:
-#            - mongo_data:/data/db
-#            - ./config/mongo/mongod.conf:/etc/mongod.conf:ro
-#        environment:
-#            - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-#            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-#        networks:
-#            - enhancer3d-network
+    mongo:
+        image: mongo:${MONGO_VERSION}
+        container_name: mongo
+        command: ["--config", "/etc/mongod.conf"]
+        expose:
+            - "27017"
+        healthcheck:
+            test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        volumes:
+            - mongo_data:/data/db
+            - ./config/mongo/mongod.conf:/etc/mongod.conf:ro
+        environment:
+            - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+        networks:
+            - enhancer3d-network
 
     scylla-master:
         image: scylladb/scylla:${SCYLLA_VERSION}
@@ -287,7 +287,7 @@ networks:
 
 volumes:
     minio_data:
-#    mongo_data:
+    mongo_data:
     scylla_master_data:
     scylla_seed_1_data:
     scylla_seed_2_data:
