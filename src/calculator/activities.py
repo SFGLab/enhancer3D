@@ -44,9 +44,9 @@ def upsert_project_configuration(input: UpsertProjectConfigurationActivityInput)
         data=[
             ProjectConfigurationEntry(
                 project_id=project.id,
-                project=project,
-                datasets=datasets,
-                configuration=configuration
+                project=input.project,
+                datasets=input.datasets,
+                configuration=input.configuration
             )
         ]
     )
