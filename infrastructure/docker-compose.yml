@@ -332,6 +332,8 @@ networks:
 volumes:
     minio_data:
     mongo_data:
+    mongo_data_1:
+    mongo_data_2:
     scylla_master_data:
     scylla_seed_1_data:
     scylla_seed_2_data:
