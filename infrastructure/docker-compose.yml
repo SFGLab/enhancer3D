@@ -21,12 +21,12 @@ services:
     mongo:
         image: mongo:${MONGO_VERSION}
         container_name: mongo
-        command: ["--config", "/etc/mongod.conf", "--replSet", "rs0", "--bind_ip", "127.0.0.1,mongo-master", "--keyFile", "/etc/mongodb/pki/keyfile"]
+        command: ["--config", "/etc/mongod.conf", "--replSet", "rs0", "--bind_ip", "127.0.0.1,mongo", "--keyFile", "/etc/mongodb/pki/keyfile"]
         expose:
             - "27017"
         healthcheck:
-            test: echo "try {rs.status()} catch(err) {rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo-master:27017',priority:1},{_id:1,host:'mongo-replica-1:27017',priority:0.5},{_id:2,host:'mongo-replica-2:27017',priority:0.5}]})}" | mongosh --port 27017 -u '${MONGO_INITDB_ROOT_USERNAME}' -p '${MONGO_INITDB_ROOT_PASSWORD}' --authenticationDatabase admin --quiet
-            interval: 1m
+            test: echo "try {rs.status()} catch(err) {rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017',priority:1},{_id:1,host:'mongo-replica-1:27017',priority:0.5},{_id:2,host:'mongo-replica-2:27017',priority:0.5}]})}" | mongosh --port 27017 -u '${MONGO_INITDB_ROOT_USERNAME}' -p '${MONGO_INITDB_ROOT_PASSWORD}' --authenticationDatabase admin --quiet
+            interval: 5m
             timeout: 10s
             retries: 5
         volumes:
@@ -40,6 +40,7 @@ services:
             - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
         networks:
             - enhancer3d-network
+        user: root
 
     mongo-replica-1:
         image: mongo:${MONGO_VERSION}
@@ -60,6 +61,7 @@ services:
             - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
         networks:
             - enhancer3d-network
+        user: root
 
     mongo-replica-2:
         image: mongo:${MONGO_VERSION}
@@ -80,7 +82,7 @@ services:
             - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
         networks:
             - enhancer3d-network
-
+        user: root
 
 #    scylla-master:
 #        image: scylladb/scylla:${SCYLLA_VERSION}
