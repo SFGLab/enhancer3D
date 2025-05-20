@@ -3,7 +3,7 @@ services:
         ports:
             - "9001:9001"
 
-    mongo-master:
+    mongo:
         deploy:
             resources:
                 limits:
