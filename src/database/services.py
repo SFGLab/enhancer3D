@@ -1,7 +1,6 @@
 from datetime import datetime
-from typing import Sequence, List, get_args, Type
+from typing import Sequence, get_args, Type
 
-from pydantic.fields import FieldInfo
 from pymongo import UpdateOne
 
 from utils.mongo_utils import get_mongo_client
@@ -40,7 +39,7 @@ def upsert_many_database_models_mongo(
         ])
 
 
-def upset_many_database_models_cassandra(
+def upsert_many_database_models_cassandra(
     keyspace: str,
     table: str,
     data: Sequence[BaseDatabaseModel],

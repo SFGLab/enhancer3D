@@ -10,8 +10,8 @@ from calculator.loaders import load_enhancer_atlas_dataset_from_filesystem, load
 from calculator.models import FindPotentialPairsOfEnhancersPromotersForProjectActivityInput, FindPotentialPairsOfEnhancersPromotersForProjectActivityOutput, CalculateDistancesForEnhancerPromotersChunkActivityInput, CalculateDistancesForEnhancerPromotersChunkActivityOutput, UpsertProjectConfigurationActivityInput, PersistDistancesForEnhancerPromotersChunkActivityInput
 from chromatin_model.loaders.packed import load_chromatin_model_ensemble_from_filesystem
 from common.models import Enhancer3dProjectDatasetList
-from database.models import DistanceCalculationEntry
-from database.services import upsert_many_database_models_mongo, upset_many_database_models_cassandra
+from database.models import DistanceCalculationEntry, ProjectConfigurationEntry
+from database.services import upsert_many_database_models_mongo
 from distance_calculation.services import hydrate_enhancer_dataset_with_ensemble_data, hydrate_gencode_dataset_with_ensemble_data, extract_regional_genes_and_enhancers_for_ensemble, extract_full_genes_and_enhancers_for_ensemble, select_potential_enhances_gene_pairs, calculate_distances_for_potential_enhancer_gene_pairs
 from utils.filesystem_utils import get_bucket_filesystem
 
@@ -21,11 +21,14 @@ def upsert_project_configuration(input: UpsertProjectConfigurationActivityInput)
     bucket_fs = get_bucket_filesystem()
 
     processing_bucket = os.getenv("PROCESSING_BUCKET", "processing")
+    enhancer3d_database_name = os.getenv("DATABASE_NAME", "enhancer3d")
+    distance_calculation_collection_name = os.getenv("PROJECT_CONFIGURATION_COLLECTION_NAME", "project_configuration")
 
     project = input.project
     datasets = Enhancer3dProjectDatasetList(input.datasets)
     configuration = input.configuration
 
+    activity.logger.info(f"Upserting project configuration for project {project.id}")
     with bucket_fs.open(os.path.join(processing_bucket, "projects", project.id, "configuration.json"), "w") as f:
         f.write(configuration.model_dump_json(indent=4))
 
@@ -34,6 +37,19 @@ def upsert_project_configuration(input: UpsertProjectConfigurationActivityInput)
 
     with bucket_fs.open(os.path.join(processing_bucket, "projects", project.id, "project.json"), "w") as f:
         f.write(project.model_dump_json(indent=4))
+
+    upsert_many_database_models_mongo(
+        database_name=enhancer3d_database_name,
+        collection_name=distance_calculation_collection_name,
+        data=[
+            ProjectConfigurationEntry(
+                project_id=project.id,
+                project=project,
+                datasets=datasets,
+                configuration=configuration
+            )
+        ]
+    )
 
     return None
 
@@ -224,15 +240,15 @@ def persist_distances_for_enhancer_promoters_chunk(input: PersistDistancesForEnh
     ]
 
     activity.logger.info(f"Persisting distances for enhancer-promoter pairs chunk {distances_chunk_path}")
-    # upsert_many_database_models_mongo(
-    #     database_name=enhancer3d_database_name,
-    #     collection_name=distance_calculation_collection_name,
-    #     data=distances_data
-    # )
-    upset_many_database_models_cassandra(
-        keyspace=enhancer3d_database_name,
-        table=distance_calculation_collection_name,
+    upsert_many_database_models_mongo(
+        database_name=enhancer3d_database_name,
+        collection_name=distance_calculation_collection_name,
         data=distances_data
     )
+    # upsert_many_database_models_cassandra(
+    #     keyspace=enhancer3d_database_name,
+    #     table=distance_calculation_collection_name,
+    #     data=distances_data
+    # )
 
     return None

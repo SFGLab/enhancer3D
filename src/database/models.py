@@ -1,7 +1,24 @@
 from datetime import datetime
 from typing import List, Sequence
 
+from common.models import Enhancer3dProject, Enhancer3dProjectDataset, Enhancer3dProjectConfiguration
 from utils.pydantic_utils import BaseDatabaseModel
+
+
+class ProjectConfigurationEntry(BaseDatabaseModel):
+    # Project
+    project_id: str
+
+    # Configuration
+    project: Enhancer3dProject
+    datasets: List[Enhancer3dProjectDataset]
+    configuration: Enhancer3dProjectConfiguration
+
+    @property
+    def index_fields(self) -> Sequence[str]:
+        return [
+            'project_id',
+        ]
 
 
 class DistanceCalculationEntry(BaseDatabaseModel):
