@@ -18,29 +18,32 @@ services:
         networks:
             - enhancer3d-network
 
-    mongo-master:
+    mongo:
         image: mongo:${MONGO_VERSION}
         container_name: mongo
-        command: ["--config", "/etc/mongod.conf", "--replSet", "rs0", "--bind_ip_all"]
+        command: ["--config", "/etc/mongod.conf", "--replSet", "rs0", "--bind_ip", "127.0.0.1,mongo-master", "--keyFile", "/etc/mongodb/pki/keyfile"]
         expose:
             - "27017"
         healthcheck:
-            test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
-            interval: 10s
+            test: echo "try {rs.status()} catch(err) {rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo-master:27017',priority:1},{_id:1,host:'mongo-replica-1:27017',priority:0.5},{_id:2,host:'mongo-replica-2:27017',priority:0.5}]})}" | mongosh --port 27017 -u '${MONGO_INITDB_ROOT_USERNAME}' -p '${MONGO_INITDB_ROOT_PASSWORD}' --authenticationDatabase admin --quiet
+            interval: 1m
             timeout: 10s
             retries: 5
         volumes:
             - mongo_data:/data/db
             - ./config/mongo/mongod.conf:/etc/mongod.conf:ro
+            - ./config/mongo/rs_keyfile:/etc/mongodb/pki/keyfile:ro
+            - ./config/mongo/init.js:/docker-entrypoint-initdb.d/init-mongo.js
         environment:
             - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
             - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+            - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
         networks:
             - enhancer3d-network
 
-    mongo-slave:
+    mongo-replica-1:
         image: mongo:${MONGO_VERSION}
-        command: ["--config", "/etc/mongod.conf", "--replSet", "rs0", "--bind_ip_all"]
+        command: ["--config", "/etc/mongod.conf", "--replSet", "rs0", "--bind_ip", "127.0.0.1,mongo-replica-1", "--keyFile", "/etc/mongodb/pki/keyfile"]
         expose:
             - "27017"
         healthcheck:
@@ -49,9 +52,35 @@ services:
             timeout: 10s
             retries: 5
         volumes:
+            - mongo_data_1:/data/db
             - ./config/mongo/mongod.conf:/etc/mongod.conf:ro
+            - ./config/mongo/rs_keyfile:/etc/mongodb/pki/keyfile:ro
+        environment:
+            - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
         networks:
             - enhancer3d-network
+
+    mongo-replica-2:
+        image: mongo:${MONGO_VERSION}
+        command: ["--config", "/etc/mongod.conf", "--replSet", "rs0", "--bind_ip", "127.0.0.1,mongo-replica-2", "--keyFile", "/etc/mongodb/pki/keyfile"]
+        expose:
+            - "27017"
+        healthcheck:
+            test: ["CMD", "mongo", "--eval", "rs.status()"]
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        volumes:
+            - mongo_data_2:/data/db
+            - ./config/mongo/mongod.conf:/etc/mongod.conf:ro
+            - ./config/mongo/rs_keyfile:/etc/mongodb/pki/keyfile:ro
+        environment:
+            - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+        networks:
+            - enhancer3d-network
+
 
 #    scylla-master:
 #        image: scylladb/scylla:${SCYLLA_VERSION}

@@ -8,6 +8,18 @@ services:
         ports:
             - "27017:27017"
 
+    mongo-replica-1:
+        profiles:
+            - "donotstart"
+        ports:
+            - "27018:27017"
+
+    mongo-replica-2:
+        profiles:
+            - "donotstart"
+        ports:
+            - "27019:27017"
+
 #    scylla-master:
 #        command: ["--smp=4", "--memory=2G", "--overprovisioned=1"]
 #        ports:

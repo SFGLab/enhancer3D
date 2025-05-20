@@ -7,19 +7,29 @@ services:
         deploy:
             resources:
                 limits:
-                    memory: 24g
+                    memory: 16g
         ulimits:
             nofile:
                 soft: 64000
                 hard: 64000
             nproc: 64000
 
-    mongo-slave:
-        scale: ${MONGO_SLAVE_SCALE}
+    mongo-replica-1:
         deploy:
             resources:
                 limits:
-                    memory: 24g
+                    memory: 16g
+        ulimits:
+            nofile:
+                soft: 64000
+                hard: 64000
+            nproc: 64000
+
+    mongo-replica-2:
+        deploy:
+            resources:
+                limits:
+                    memory: 16g
         ulimits:
             nofile:
                 soft: 64000
