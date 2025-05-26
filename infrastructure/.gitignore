@@ -1,2 +1,3 @@
 config/livy/spark_defaults.conf
 config/mongo/rs_keyfile
+config/spark/libs/ivysettings.xml

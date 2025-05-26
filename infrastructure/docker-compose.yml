@@ -268,6 +268,7 @@ services:
             retries: 5
         volumes:
             - ../:/work
+            - ./config/spark/libs:/libs
         networks:
             - enhancer3d-network
 
@@ -295,6 +296,7 @@ services:
             - spark-master
         volumes:
             - ../:/work
+            - ./config/spark/libs:/libs
         networks:
             - enhancer3d-network
 
@@ -306,6 +308,7 @@ services:
         volumes:
             - ./config/livy/spark_defaults.conf:/opt/livy/conf/spark-defaults.conf
             - ../:/work
+            - ./config/spark/libs:/libs
         depends_on:
             - spark-master
         networks:
