@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 public class MongoConnector implements Serializable, UDF2<String, Seq<GenericRowWithSchema>, Seq<GenericRowWithSchema>> {
 
@@ -66,14 +67,9 @@ public class MongoConnector implements Serializable, UDF2<String, Seq<GenericRow
                 }
             }
 
-            final var results = new ArrayList<GenericRowWithSchema>();
-            try (final var cursor = collection.find(query).projection(projectionDocument).iterator()) {
-                while (cursor.hasNext()) {
-                    final var document = cursor.next();
-                    final var row = coerceDocumentToSchema(document, structType);
-                    results.add(row);
-                }
-            }
+            final var results = StreamSupport.stream(collection.find(query).projection(projectionDocument).spliterator(), true)
+                .map(document -> coerceDocumentToSchema(document, structType))
+                .toList();
 
             return CollectionConverters.asScalaBuffer(results);
         }
