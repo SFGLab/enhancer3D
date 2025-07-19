@@ -1,3 +1,4 @@
+import hashlib
 import os
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime
@@ -11,7 +12,6 @@ from calculator.models import FindPotentialPairsOfEnhancersPromotersForProjectAc
 from chromatin_model.loaders.packed import load_chromatin_model_ensemble_from_filesystem
 from common.models import Enhancer3dProjectDatasetList
 from database.models import DistanceCalculationEntry, ProjectConfigurationEntry
-from database.services import upsert_many_database_models_mongo
 from distance_calculation.services import hydrate_enhancer_dataset_with_ensemble_data, hydrate_gencode_dataset_with_ensemble_data, extract_regional_genes_and_enhancers_for_ensemble, extract_full_genes_and_enhancers_for_ensemble, select_potential_enhances_gene_pairs, calculate_distances_for_potential_enhancer_gene_pairs
 from utils.filesystem_utils import get_bucket_filesystem
 
@@ -21,8 +21,7 @@ def upsert_project_configuration(input: UpsertProjectConfigurationActivityInput)
     bucket_fs = get_bucket_filesystem()
 
     processing_bucket = os.getenv("PROCESSING_BUCKET", "processing")
-    enhancer3d_database_name = os.getenv("DATABASE_NAME", "enhancer3d")
-    distance_calculation_collection_name = os.getenv("PROJECT_CONFIGURATION_COLLECTION_NAME", "project_configuration")
+    database_bucket = os.getenv("DATABASE_BUCKET", "database")
 
     project = input.project
     datasets = Enhancer3dProjectDatasetList(input.datasets)
@@ -38,18 +37,21 @@ def upsert_project_configuration(input: UpsertProjectConfigurationActivityInput)
     with bucket_fs.open(os.path.join(processing_bucket, "projects", project.id, "project.json"), "w") as f:
         f.write(project.model_dump_json(indent=4))
 
-    upsert_many_database_models_mongo(
-        database_name=enhancer3d_database_name,
-        collection_name=distance_calculation_collection_name,
-        data=[
-            ProjectConfigurationEntry(
-                project_id=project.id,
-                project=input.project,
-                datasets=input.datasets,
-                configuration=input.configuration
-            )
-        ]
+    configuration_entry = ProjectConfigurationEntry(
+        project_id=project.id,
+        project=input.project,
+        datasets=input.datasets,
+        configuration=input.configuration
     )
+
+    configuration_path = os.path.join(
+        database_bucket,
+        "project_configuration",
+        f"{project.id}.json"
+    )
+
+    with bucket_fs.open(configuration_path, "w") as f:
+        f.write(configuration_entry.model_dump_json(indent=4))
 
     return None
 
@@ -216,8 +218,7 @@ def persist_distances_for_enhancer_promoters_chunk(input: PersistDistancesForEnh
     executed_at = datetime.now()
 
     processing_bucket = os.getenv("PROCESSING_BUCKET", "processing")
-    enhancer3d_database_name = os.getenv("DATABASE_NAME", "enhancer3d")
-    distance_calculation_collection_name = os.getenv("DISTANCE_CALCULATION_COLLECTION_NAME", "distance_calculation")
+    database_bucket = os.getenv("DATABASE_BUCKET", "database")
 
     project = input.project
     dataset = input.dataset
@@ -226,29 +227,52 @@ def persist_distances_for_enhancer_promoters_chunk(input: PersistDistancesForEnh
     with bucket_fs.open(distances_chunk_path, "rb") as f:
         distances = pd.read_parquet(f)
 
-    distances_data = [
-        DistanceCalculationEntry.model_validate({
-            'project_id': project.id,
-            'project_authors': project.authors,
-            'project_species': project.species,
-            'project_cell_lines': project.cell_lines,
-            'project_executed_at': executed_at,
-            'ensemble_id': dataset.ensemble_id,
-            **row.to_dict(),
-        })
-        for _, row in distances.iterrows()
-    ]
-
     activity.logger.info(f"Persisting distances for enhancer-promoter pairs chunk {distances_chunk_path}")
-    upsert_many_database_models_mongo(
-        database_name=enhancer3d_database_name,
-        collection_name=distance_calculation_collection_name,
-        data=distances_data
-    )
-    # upsert_many_database_models_cassandra(
-    #     keyspace=enhancer3d_database_name,
-    #     table=distance_calculation_collection_name,
-    #     data=distances_data
-    # )
+    all_region_ids = distances['region_id'].unique()
+    all_gene_ids = distances['gene_id'].unique()
+    all_enhancer_ids = distances['enh_id'].unique()
+
+    for region_id in all_region_ids:
+        for gene_id in all_gene_ids:
+            for enh_id in all_enhancer_ids:
+                distances_subset = distances[
+                    (distances['region_id'] == region_id) &
+                    (distances['gene_id'] == gene_id) &
+                    (distances['enh_id'] == enh_id)
+                ]
+
+                if distances_subset.empty:
+                    continue
+
+                partition_hash = hashlib.md5(distances_chunk_path.encode('utf-8')).hexdigest()
+
+                partition_path = os.path.join(
+                    processing_bucket,
+                    "distance_calculation",
+                    f"project_id={project.id}",
+                    f"region_id={region_id}",
+                    f"ensemble_id={dataset.ensemble_id}",
+                    f"gene_id={dataset.gene_id}",
+                    f"enh_id={dataset.enh_id}",
+                    f"partition_{partition_hash}.parquet"
+                )
+
+                distances_data = [
+                    DistanceCalculationEntry
+                    .model_validate({
+                        'project_id': project.id,
+                        'project_authors': project.authors,
+                        'project_species': project.species,
+                        'project_cell_lines': project.cell_lines,
+                        'project_executed_at': executed_at,
+                        'ensemble_id': dataset.ensemble_id,
+                        **row.to_dict(),
+                    })
+                    .model_dump()
+                    for _, row in distances.iterrows()
+                ]
+
+                with bucket_fs.open(partition_path, "wb") as f:
+                    pd.DataFrame(distances_data).to_parquet(f)
 
     return None
