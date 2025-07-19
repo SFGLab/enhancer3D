@@ -250,10 +250,10 @@ def persist_distances_for_enhancer_promoters_chunk(input: PersistDistancesForEnh
                     processing_bucket,
                     "distance_calculation",
                     f"project_id={project.id}",
-                    f"region_id={region_id}",
                     f"ensemble_id={dataset.ensemble_id}",
-                    f"gene_id={dataset.gene_id}",
-                    f"enh_id={dataset.enh_id}",
+                    f"region_id={region_id}",
+                    f"gene_id={gene_id}",
+                    f"enh_id={enh_id}",
                     f"partition_{partition_hash}.parquet"
                 )
 
