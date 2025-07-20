@@ -7,3 +7,4 @@ packed/
 distance_distributions*/
 links/*.bed
 rnaseq/*
+whole_chromosomes/*
