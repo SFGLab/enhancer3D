@@ -229,50 +229,44 @@ def persist_distances_for_enhancer_promoters_chunk(input: PersistDistancesForEnh
 
     activity.logger.info(f"Persisting distances for enhancer-promoter pairs chunk {distances_chunk_path}")
     all_region_ids = distances['region_id'].unique()
-    all_gene_ids = distances['gene_id'].unique()
-    all_enhancer_ids = distances['enh_id'].unique()
 
     for region_id in all_region_ids:
-        for gene_id in all_gene_ids:
-            for enh_id in all_enhancer_ids:
-                distances_subset = distances[
-                    (distances['region_id'] == region_id) &
-                    (distances['gene_id'] == gene_id) &
-                    (distances['enh_id'] == enh_id)
-                ]
+        distances_subset = distances[(distances['region_id'] == region_id)].copy()
+        if distances_subset.empty:
+            continue
 
-                if distances_subset.empty:
-                    continue
+        partition_hash = hashlib.md5(distances_chunk_path.encode('utf-8')).hexdigest()
+        partition_path = os.path.join(
+            database_bucket,
+            "distance_calculation",
+            f"project_id={project.id}",
+            f"ensemble_id={dataset.ensemble_id}",
+            f"region_id={region_id}",
+            f"partition_{partition_hash}.parquet"
+        )
 
-                partition_hash = hashlib.md5(distances_chunk_path.encode('utf-8')).hexdigest()
+        # distances_data = [
+        #     DistanceCalculationEntry
+        #     .model_validate({
+        #         'project_id': project.id,
+        #         'project_authors': project.authors,
+        #         'project_species': project.species,
+        #         'project_cell_lines': project.cell_lines,
+        #         'project_executed_at': executed_at,
+        #         'ensemble_id': dataset.ensemble_id,
+        #         **row.to_dict(),
+        #     })
+        #     .model_dump()
+        #     for _, row in distances_subset.iterrows()
+        # ]
+        distances_subset['project_id'] = project.id
+        distances_subset['project_authors'] = [project.authors] * len(distances_subset)
+        distances_subset['project_species'] = [project.species] * len(distances_subset)
+        distances_subset['project_cell_lines'] = [project.cell_lines] * len(distances_subset)
+        distances_subset['project_executed_at'] = executed_at
+        distances_subset['ensemble_id'] = dataset.ensemble_id
 
-                partition_path = os.path.join(
-                    processing_bucket,
-                    "distance_calculation",
-                    f"project_id={project.id}",
-                    f"ensemble_id={dataset.ensemble_id}",
-                    f"region_id={region_id}",
-                    f"gene_id={gene_id}",
-                    f"enh_id={enh_id}",
-                    f"partition_{partition_hash}.parquet"
-                )
-
-                distances_data = [
-                    DistanceCalculationEntry
-                    .model_validate({
-                        'project_id': project.id,
-                        'project_authors': project.authors,
-                        'project_species': project.species,
-                        'project_cell_lines': project.cell_lines,
-                        'project_executed_at': executed_at,
-                        'ensemble_id': dataset.ensemble_id,
-                        **row.to_dict(),
-                    })
-                    .model_dump()
-                    for _, row in distances.iterrows()
-                ]
-
-                with bucket_fs.open(partition_path, "wb") as f:
-                    pd.DataFrame(distances_data).to_parquet(f)
+        with bucket_fs.open(partition_path, "wb") as f:
+            distances_subset.to_parquet(f)
 
     return None
