@@ -16,7 +16,7 @@ spark = (
     .config("spark.driver.maxResultSize", os.getenv("SPARK_DRIVER_MAX_RESULT_SIZE", "1g"))
     .config("spark.authenticate", os.getenv("SPARK_RPC_AUTHENTICATION_ENABLED", "false").lower() == "true")
     .config("spark.authenticate.secret", os.getenv("SPARK_RPC_AUTHENTICATION_SECRET", ""))
-    .config("spark.network.crypto.enabled", os.getenv("SPARK_NETWORK_CRYPTO_ENABLED", "false").lower() == "true")
+    .config("spark.network.crypto.enabled", os.getenv("SPARK_RPC_ENCRYPTION", "false").lower() == "true")
     .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.2,com.amazonaws:aws-java-sdk-bundle:1.12.262")
     .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     .config("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
