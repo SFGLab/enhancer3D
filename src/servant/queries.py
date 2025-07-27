@@ -1,9 +1,6 @@
-from functools import cache
-from typing import List
-
+import numpy as np
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F, types as T
-import numpy as np
 from pyspark.sql.connect.dataframe import DataFrame
 from scipy import stats
 from statsmodels.sandbox.stats.multicomp import multipletests
@@ -38,7 +35,6 @@ def bonferroni_correction(pvalues, alpha=0.05):
     return float(np.mean(pvals_corrected))
 
 
-@cache
 def _projects_by_cell_line(spark: SparkSession, cell_line: str) -> DataFrame:
     return (
         spark
@@ -50,7 +46,6 @@ def _projects_by_cell_line(spark: SparkSession, cell_line: str) -> DataFrame:
             F.explode('datasets.metadata.cell_line').alias('cell_line')
         )
         .where(F.col('cell_line') == cell_line)
-        .cache()
     )
 
 
@@ -76,8 +71,8 @@ def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_project
             how="inner"
         )
         .select(
-            'project_id',
-            'ensemble_id',
+            F.col('relevant_projects.project_id').alias('project_id'),
+            F.col('relevant_projects.ensemble_id').alias('ensemble_id'),
             'region_id',
             'enh_id',
             'gene_type',
@@ -92,7 +87,6 @@ def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_project
             (F.col('gene_type') == 'protein_coding')
             # & (F.col('enh_tSS_distance') < 20_000)
         )
-        .cache()
     )
 
     distances_with_links_df = (
