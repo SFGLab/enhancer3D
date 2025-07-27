@@ -24,3 +24,4 @@ joypy~=0.2.6
 gseapy~=1.1.9
 statsmodels~=0.14.5
 grpcio~=1.71.0
+fastapi[standard]~=0.116.0

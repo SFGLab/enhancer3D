@@ -65,3 +65,6 @@ services:
         ports:
             - "4040:4040"
 
+    app_api:
+        ports:
+            - "8001:80"

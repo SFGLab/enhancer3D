@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession
 from temporalio import activity
 
 from servant.models import Query, Response
-from servant.queries import query_cell_line_with_links
+from servant.queries import query_cell_line_with_links, query_cell_link_cross_comparison
 
 spark = (
     SparkSession.builder
@@ -37,5 +37,8 @@ def execute_query(query: Query) -> Response:
     """
     if query.input.type == "cell_line_with_links":
         return query_cell_line_with_links(spark, query.request_id, query.input)
+
+    if query.input.type == "cell_link_cross_comparison":
+        return query_cell_link_cross_comparison(spark, query.request_id, query.input)
 
     raise ValueError(f"Unsupported query type: {query.input.type}")

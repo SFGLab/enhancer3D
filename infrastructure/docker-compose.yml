@@ -352,6 +352,22 @@ services:
             - SPARK_DRIVER_MAX_RESULT_SIZE=${APP_SERVANT_SPARK_DRIVER_MAX_RESULT_SIZE}
         depends_on:
             - temporal
+            - spark-master
+        networks:
+            - enhancer3d-network
+        restart: on-failure
+
+    app_api:
+        build:
+            context: ..
+            dockerfile: infrastructure/app_api.Dockerfile
+        expose:
+            - "80"
+        environment:
+            - TEMPORAL_ENDPOINT=temporal:7233
+            - TEMPORAL_NAMESPACE=default
+        depends_on:
+            - temporal
         networks:
             - enhancer3d-network
         restart: on-failure

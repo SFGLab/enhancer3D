@@ -49,15 +49,8 @@ def _projects_by_cell_line(spark: SparkSession, cell_line: str) -> DataFrame:
     )
 
 
-def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_projects_df: DataFrame) -> DataFrame:
-    links_df = (
-        spark
-        .read
-        .parquet("s3a://database/links")
-        .alias("links")
-    )
-
-    distances_df = (
+def _distances_for_relevant_projects(spark: SparkSession, relevant_projects_df: DataFrame) -> DataFrame:
+    return (
         spark
         .read
         .parquet("s3a://database/distance_calculation")
@@ -72,13 +65,21 @@ def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_project
             'ensemble_id',
             'region_id',
             'enh_id',
-            'gene_type',
+            'enh_chr',
+            'enh_start',
+            'enh_end',
+            'enh_score',
             'avg_dist',
             'var_dist',
             'dist',
             'enh_tSS_distance',
             F.element_at(F.col('project_cell_lines'), 1).alias('cell_line'),
             F.split(F.col('gene_id'), '\.')[0].alias('gene_id'),  # gene_id ENH00001.XXX -> ENH00001
+            'gene_chr',
+            'gene_start',
+            'gene_end',
+            'gene_strand',
+            'gene_type',
         )
         .where(
             (F.col('gene_type') == 'protein_coding')
@@ -86,6 +87,17 @@ def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_project
         )
         .alias('distances')
     )
+
+
+def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_projects_df: DataFrame) -> DataFrame:
+    links_df = (
+        spark
+        .read
+        .parquet("s3a://database/links")
+        .alias("links")
+    )
+
+    distances_df = _distances_for_relevant_projects(spark, relevant_projects_df)
 
     distances_with_links_df = (
         distances_df
@@ -100,11 +112,21 @@ def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_project
             F.col('distances.ensemble_id'),
             F.col('distances.region_id'),
             F.col('distances.enh_id'),
+            F.col('distances.enh_chr'),
+            F.col('distances.enh_start'),
+            F.col('distances.enh_end'),
+            F.col('distances.enh_score'),
+            F.col('distances.gene_id'),
             F.col('distances.gene_type'),
+            F.col('distances.gene_chr'),
+            F.col('distances.gene_start'),
+            F.col('distances.gene_end'),
+            F.col('distances.gene_strand'),
             F.col('distances.avg_dist'),
             F.col('distances.var_dist'),
             F.col('distances.dist'),
             F.col('distances.enh_tSS_distance'),
+            F.col('distances.cell_line'),
             # If has link then True else False
             F.when(F.col('links.gene_id').isNotNull(), True).otherwise(False).alias('has_link'),
         )
@@ -119,6 +141,53 @@ def query_cell_line_with_links(spark: SparkSession, request_id: str, input: Cell
 
     path = f"s3a://database/results/{request_id}.parquet"
     distances_with_links_df.repartition(1).write.mode("overwrite").parquet(path)
+
+    return Response(
+        request_id=request_id,
+        path=path
+    )
+
+
+def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input: CellLineWithLinksInput) -> Response:
+    relevant_projects_base_df = _projects_by_cell_line(spark, input.cell_line_base)
+    relevant_projects_compare_df = _projects_by_cell_line(spark, input.cell_line_compare)
+
+    distances_with_links_base_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_base_df)
+    distances_with_links_compare_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_compare_df)
+
+    cross_comparison_df = (
+        distances_with_links_base_df
+        .join(
+            distances_with_links_compare_df,
+            on=['gene_id', 'enh_id'],
+            how='inner',
+            suffixes=('_base', '_compare')
+        )
+        .select(
+            'gene_id',
+            'enh_id',
+            F.col('distances_base.region_id').alias('region_id_base'),
+            F.col('distances_compare.region_id').alias('region_id_compare'),
+            F.col('distances_base.gene_chr').alias('gene_chr'),
+            F.col('distances_base.gene_start').alias('gene_start'),
+            F.col('distances_base.gene_end').alias('gene_end'),
+            F.col('distances_base.gene_strand').alias('gene_strand'),
+            F.col('distances_base.gene_type').alias('gene_type'),
+            F.col('distances_base.enh_chr').alias('enh_chr'),
+            F.col('distances_base.enh_start').alias('enh_start'),
+            F.col('distances_base.enh_end').alias('enh_end'),
+            F.col('distances_base.enh_score').alias('enh_score'),
+            diff(F.col('distances_base.dist'), F.col('distances_compare.dist')).alias('diff_dist'),
+            var(F.col('distances_base.dist')).alias('var_dist_base'),
+            var(F.col('distances_compare.dist')).alias('var_dist_compare'),
+            avg(F.col('distances_base.dist')).alias('avg_dist_base'),
+            avg(F.col('distances_compare.dist')).alias('avg_dist_compare'),
+            mannwhiteneyu(F.col('distances_base.dist'), F.col('distances_compare.dist')).alias('mannwhiteneyu_pvalue')
+        )
+    )
+
+    path = f"s3a://database/results/{request_id}.parquet"
+    cross_comparison_df.repartition(1).write.mode("overwrite").parquet(path)
 
     return Response(
         request_id=request_id,
