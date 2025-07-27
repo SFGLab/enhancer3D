@@ -89,13 +89,10 @@ def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_project
 
     distances_with_links_df = (
         distances_df
+        .repartition(200, 'cell_line', 'gene_id', 'enh_id')
         .join(
-            other=links_df,
-            on=F.expr(
-                "distances.cell_line = links.cell_line"
-                " AND distances.gene_id = links.gene_id"
-                " AND distances.enh_id = links.enh_id"
-            ),
+            other=F.broadcast(links_df),
+            on=["cell_line", "gene_id", "enh_id"],
             how="outer"
         )
         .select(
