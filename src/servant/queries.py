@@ -63,16 +63,13 @@ def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_project
         .parquet("s3a://database/distance_calculation")
         .alias("distances")
         .join(
-            other=relevant_projects_df.alias("relevant_projects"),
-            on=F.expr(
-                "distances.project_id = relevant_projects.project_id"
-                " AND distances.ensemble_id = relevant_projects.ensemble_id"
-            ),
-            how="inner"
+            relevant_projects_df.select('project_id', 'ensemble_id'),
+            ['project_id', 'ensemble_id'],
+            how='semi'
         )
         .select(
-            F.col('relevant_projects.project_id').alias('project_id'),
-            F.col('relevant_projects.ensemble_id').alias('ensemble_id'),
+            'project_id',
+            'ensemble_id',
             'region_id',
             'enh_id',
             'gene_type',
