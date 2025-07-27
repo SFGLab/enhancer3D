@@ -11,10 +11,7 @@ app = FastAPI()
 @app.get("/query/{id}")
 async def get_query_status(id: str) -> Optional[GetQueryStatusResponse]:
     temporal_client = await get_temporal_client()
-    workflow_run_handle = temporal_client.get_workflow_handle(
-        workflow_id="execute-query",
-        run_id=id
-    )
+    workflow_run_handle = temporal_client.get_workflow_handle(workflow_id=id)
 
     workflow_run_description = await workflow_run_handle.describe()
     workflow_status = workflow_run_description.status.name if workflow_run_description.status else "UNKNOWN"
