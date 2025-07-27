@@ -54,7 +54,7 @@ def _projects_by_cell_line(spark: SparkSession, cell_line: str) -> DataFrame:
     )
 
 
-def _distances_with_links_for_ensemble_ids(spark: SparkSession, project_ids: List[str], ensemble_ids: List[str]) -> DataFrame:
+def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_projects_df: DataFrame) -> DataFrame:
     links_df = (
         spark
         .read
@@ -67,9 +67,13 @@ def _distances_with_links_for_ensemble_ids(spark: SparkSession, project_ids: Lis
         .read
         .parquet("s3a://database/distance_calculation")
         .alias("distances")
-        .where(
-            F.col('project_id').isin(project_ids)
-            & F.col('ensemble_id').isin(ensemble_ids)
+        .join(
+            other=relevant_projects_df.alias("relevant_projects"),
+            on=F.expr(
+                "distances.project_id = relevant_projects.project_id"
+                " AND distances.ensemble_id = relevant_projects.ensemble_id"
+            ),
+            how="inner"
         )
         .select(
             'project_id',
@@ -103,16 +107,15 @@ def _distances_with_links_for_ensemble_ids(spark: SparkSession, project_ids: Lis
             how="outer"
         )
         .select(
-            distances_df.project_id,
-            distances_df.ensemble_id,
-            distances_df.cell_line,
-            distances_df.region_id,
-            distances_df.gene_id,
-            distances_df.enh_id,
-            distances_df.avg_dist,
-            distances_df.var_dist,
-            distances_df.dist,
-            distances_df.enh_tSS_distance,
+            F.col('distances.project_id'),
+            F.col('distances.ensemble_id'),
+            F.col('distances.region_id'),
+            F.col('distances.enh_id'),
+            F.col('distances.gene_type'),
+            F.col('distances.avg_dist'),
+            F.col('distances.var_dist'),
+            F.col('distances.dist'),
+            F.col('distances.enh_tSS_distance'),
             # If has link then True else False
             F.when(F.col('links.gene_id').isNotNull(), True).otherwise(False).alias('has_link'),
         )
@@ -123,10 +126,7 @@ def _distances_with_links_for_ensemble_ids(spark: SparkSession, project_ids: Lis
 
 def query_cell_line_with_links(spark: SparkSession, request_id: str, input: CellLineWithLinksInput) -> Response:
     relevant_projects_df = _projects_by_cell_line(spark, input.cell_line)
-    project_ids = relevant_projects_df.select('project_id').distinct().rdd.flatMap(lambda x: x).collect()
-    ensemble_ids = relevant_projects_df.select('ensemble_id').distinct().rdd.flatMap(lambda x: x).collect()
-
-    distances_with_links_df = _distances_with_links_for_ensemble_ids(spark, project_ids, ensemble_ids)
+    distances_with_links_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_df)
 
     path = f"s3a://database/results/{request_id}.parquet"
     distances_with_links_df.write.mode("overwrite").parquet(path)
