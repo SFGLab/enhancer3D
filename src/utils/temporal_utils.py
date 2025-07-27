@@ -1,7 +1,6 @@
 import logging
 import os
 from concurrent.futures import ProcessPoolExecutor
-from functools import cache
 from multiprocessing import Manager
 from typing import Sequence, Callable, Type, Optional
 
@@ -13,7 +12,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-@cache
 async def get_temporal_client(
     temporal_endpoint: Optional[str] = None,
     temporal_namespace: Optional[str] = None,
