@@ -4,6 +4,7 @@ from typing import Optional
 from fastapi import FastAPI
 
 from api.models import GetQueryStatusResponse, RequestQuery, RequestQueryResponse
+from servant.models import Query
 from utils.temporal_utils import get_temporal_client
 
 app = FastAPI()
@@ -37,7 +38,7 @@ async def request_query(request: RequestQuery) -> RequestQueryResponse:
     workflow_run_id = str(uuid.uuid4())
     await temporal_client.start_workflow(
         workflow="execute-query",
-        arg=request.input,
+        arg=Query(request_id=workflow_run_id, input=request.input),
         id=workflow_run_id,
         task_queue="servant-task-queue",
     )

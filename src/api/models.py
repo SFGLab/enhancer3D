@@ -1,8 +1,8 @@
-from typing import Optional, Union
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from servant.models import Response, CellLineWithLinksInput, CellLinkCrossComparisonInput
+from servant.models import Response, QueryInput
 
 
 class GetQueryStatusResponse(BaseModel):
@@ -12,7 +12,7 @@ class GetQueryStatusResponse(BaseModel):
 
 
 class RequestQuery(BaseModel):
-    input: Union[CellLineWithLinksInput, CellLinkCrossComparisonInput] = Field(discriminator="type")
+    input: QueryInput = Field(discriminator="type")
 
 
 class RequestQueryResponse(BaseModel):

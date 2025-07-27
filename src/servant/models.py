@@ -14,9 +14,12 @@ class CellLinkCrossComparisonInput(BaseModel):
     cell_line_compare: str
 
 
+QueryInput = Union[CellLineWithLinksInput, CellLinkCrossComparisonInput]
+
+
 class Query(BaseModel):
     request_id: str
-    input: Union[CellLineWithLinksInput, CellLinkCrossComparisonInput] = Field(discriminator="type")
+    input: QueryInput = Field(discriminator="type")
 
 
 class Response(BaseModel):
