@@ -116,10 +116,20 @@ class Enhancer3dGencodeAnnotationDatasetType(StrEnum):
     TSV_LIFTOVERED_MOD = "tsv_liftovered_mod"
 
 
+class Enhancer3dProjectDatasetMetadata(BaseModel):
+    cell_line: Optional[str] = None
+    species: Optional[List[str]] = None
+    authors: Optional[List[str]] = None
+    modeling_pipeline: Optional[str] = None
+
+
 class Enhancer3dProjectDataset(BaseModel):
     # Ensemble dataset
     ensemble_id: str
     ensemble_region: ChromatinRegion
+
+    # Metadata
+    metadata: Optional[Enhancer3dProjectDatasetMetadata] = None
 
     # Enhancer Atlas dataset
     enhancer_atlas_dataset_name: str
