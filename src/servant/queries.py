@@ -87,6 +87,7 @@ def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_project
             (F.col('gene_type') == 'protein_coding')
             # & (F.col('enh_tSS_distance') < 20_000)
         )
+        .alias('distances')
     )
 
     distances_with_links_df = (
