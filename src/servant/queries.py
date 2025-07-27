@@ -89,9 +89,9 @@ def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_project
 
     distances_with_links_df = (
         distances_df
-        .repartition(200, 'cell_line', 'gene_id', 'enh_id')
+        .repartition(64, 'cell_line', 'gene_id', 'enh_id')
         .join(
-            other=F.broadcast(links_df),
+            other=links_df.repartition(64, 'cell_line', 'gene_id', 'enh_id'),
             on=["cell_line", "gene_id", "enh_id"],
             how="outer"
         )
@@ -118,7 +118,7 @@ def query_cell_line_with_links(spark: SparkSession, request_id: str, input: Cell
     distances_with_links_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_df)
 
     path = f"s3a://database/results/{request_id}.parquet"
-    distances_with_links_df.write.mode("overwrite").parquet(path)
+    distances_with_links_df.repartition(1).write.mode("overwrite").parquet(path)
 
     return Response(
         request_id=request_id,
