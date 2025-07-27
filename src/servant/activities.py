@@ -13,6 +13,7 @@ spark = (
     .config("spark.cores.max", int(os.getenv("SPARK_CORES_MAX", "4")))
     .config("spark.executor.instances", int(os.getenv("SPARK_EXECUTOR_INSTANCES", "1")))
     .config("spark.executor.memory", os.getenv("SPARK_EXECUTOR_MEMORY", "4g"))
+    .config("spark.driver.memory", os.getenv("SPARK_DRIVER_MEMORY", "1g"))
     .config("spark.driver.maxResultSize", os.getenv("SPARK_DRIVER_MAX_RESULT_SIZE", "1g"))
     .config("spark.authenticate", os.getenv("SPARK_RPC_AUTHENTICATION_ENABLED", "false").lower() == "true")
     .config("spark.authenticate.secret", os.getenv("SPARK_RPC_AUTHENTICATION_SECRET", ""))
