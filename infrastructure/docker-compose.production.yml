@@ -46,6 +46,9 @@ services:
     app_calculator:
         scale: ${APP_CALCULATOR_SCALE}
 
+    app_servant:
+        scale: ${APP_SERVANT_SCALE}
+
     spark-master:
         ports:
             - "8081:8080"
