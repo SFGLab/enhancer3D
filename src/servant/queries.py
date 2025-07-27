@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F, types as T
@@ -5,7 +7,7 @@ from pyspark.sql.connect.dataframe import DataFrame
 from scipy import stats
 from statsmodels.sandbox.stats.multicomp import multipletests
 
-from servant.models import CellLineWithLinksInput, Response
+from servant.models import CellLineWithLinksInput, Response, PartialChromatinRegion
 
 
 @F.udf(T.ArrayType(T.DoubleType()))
@@ -49,8 +51,8 @@ def _projects_by_cell_line(spark: SparkSession, cell_line: str) -> DataFrame:
     )
 
 
-def _distances_for_relevant_projects(spark: SparkSession, relevant_projects_df: DataFrame) -> DataFrame:
-    return (
+def _distances_for_relevant_projects(spark: SparkSession, relevant_projects_df: DataFrame, regions: List[PartialChromatinRegion]) -> DataFrame:
+    distances_df = (
         spark
         .read
         .parquet("s3a://database/distance_calculation")
@@ -85,8 +87,34 @@ def _distances_for_relevant_projects(spark: SparkSession, relevant_projects_df: 
             (F.col('gene_type') == 'protein_coding')
             # & (F.col('enh_tSS_distance') < 20_000)
         )
-        .alias('distances')
     )
+
+    if regions and len(regions) > 0:
+        regions_schema = T.StructType([
+            T.StructField("chr", T.StringType(), False),
+            T.StructField("start", T.IntegerType(), False),
+            T.StructField("end", T.IntegerType(), False)
+        ])
+
+        regions_df = spark.createDataFrame(
+            [region.model_dump() for region in regions],
+            schema=regions_schema
+        )
+
+        distances_df = (
+            distances_df
+            .join(
+                F.broadcast(regions_df),
+                (distances_df.enh_chr == regions_df.chr) &
+                (distances_df.enh_start <= regions_df.end) &
+                (distances_df.enh_end >= regions_df.start),
+                "inner"
+            )
+            .drop("chr", "start", "end")
+        )
+
+    return distances_df.alias('distances')
+
 
 
 def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_projects_df: DataFrame) -> DataFrame:
