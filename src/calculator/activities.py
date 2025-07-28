@@ -1,8 +1,6 @@
 import hashlib
 import os
-from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime
-from typing import Tuple
 
 import pandas as pd
 from temporalio import activity
@@ -141,23 +139,12 @@ def find_potential_pairs_of_enhancers_promoters_for_project(input: FindPotential
     ]
 
     activity.logger.info(f"Writing enhancer-promoter pairs to the filesystem, {len(chunked_potential_enhancer_gene_pairs)} chunks")
-
-    def write_chunk_to_filesystem(chunk_entry: Tuple[int, pd.DataFrame]) -> str:
-        bucket_fs = get_bucket_filesystem()
-
-        chunk_id, chunk = chunk_entry
+    enhancer_promoter_chunk_paths = []
+    for chunk_id, chunk in chunked_potential_enhancer_gene_pairs:
         chunk_path = os.path.join(project_enhancer_promoter_chunks_path, f"chunk_{chunk_id}.parquet")
-
+        enhancer_promoter_chunk_paths.append(chunk_path)
         with bucket_fs.open(chunk_path, "wb") as f:
             chunk.to_parquet(f)
-
-        return chunk_path
-
-    with ThreadPoolExecutor() as executor:
-        enhancer_promoter_chunk_paths = list(executor.map(
-            write_chunk_to_filesystem,
-            chunked_potential_enhancer_gene_pairs
-        ))
 
     return FindPotentialPairsOfEnhancersPromotersForProjectActivityOutput(
         enhancers_promoters_chunk_paths=enhancer_promoter_chunk_paths,
