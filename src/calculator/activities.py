@@ -75,7 +75,8 @@ def find_potential_pairs_of_enhancers_promoters_for_project(input: FindPotential
         "projects",
         project.id,
         "enhancer_promoter_pairs",
-        dataset.ensemble_id
+        dataset.ensemble_id,
+        str(dataset.ensemble_region)
     )
     activity.logger.info(f"Starting Enhancer3D project {project}, chunks will be output to {project_enhancer_promoter_chunks_path}")
 
@@ -180,6 +181,7 @@ def calculate_distances_for_enhancer_promoters_chunk(input: CalculateDistancesFo
         project.id,
         "distances",
         dataset.ensemble_id,
+        str(dataset.ensemble_region),
         os.path.basename(enhancers_promoters_chunk_path)
     )
 
