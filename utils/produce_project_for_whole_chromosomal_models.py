@@ -9,7 +9,8 @@ sys.path.append(src_dir)
 
 from common.models import (
     Enhancer3dProject, Enhancer3dProjectConfiguration, Enhancer3dProjectDataset,
-    Enhancer3dEnhancerAtlasDatasetType, Enhancer3dGencodeAnnotationDatasetType, ChromatinRegion
+    Enhancer3dEnhancerAtlasDatasetType, Enhancer3dGencodeAnnotationDatasetType, ChromatinRegion,
+    Enhancer3dProjectDatasetMetadata
 )
 
 from calculator.models import CalculateDistancesForProjectWorkflowInput
@@ -19,7 +20,7 @@ class Args(NamedTuple):
     project_id: str
     project_authors: list[str]
     project_species: list[str]
-    project_cell_lines: list[str]
+    project_cell_line: str
     ensemble_id_format: str
     ensemble_id_chromosomes: list[int]
     enhancer_atlas_dataset_name: str
@@ -56,10 +57,8 @@ def parse_args() -> Args:
         help="List of species for the project. Provide multiple species names separated by spaces.",
     )
     parser.add_argument(
-        "--project_cell_lines",
+        "--project_cell_line",
         type=str,
-        nargs='*',
-        default=[],
         help="List of cell lines for the project. Provide multiple cell line names separated by spaces.",
     )
 
@@ -142,7 +141,7 @@ def parse_args() -> Args:
         project_id=args.project_id,
         project_authors=args.project_authors,
         project_species=args.project_species,
-        project_cell_lines=args.project_cell_lines,
+        project_cell_line=args.project_cell_line,
         ensemble_id_format=args.ensemble_id_format,
         ensemble_id_chromosomes=args.ensemble_id_chromosomes,
         enhancer_atlas_dataset_name=args.enhancer_atlas_dataset_name,
@@ -173,18 +172,18 @@ def extract_chromosomal_region_from_file(file_path: str, chromosome: int, flank_
         ]
 
     points_in_sequence_for_chromosome = [
-        (chromosome, int(point))
-        for chr, point, _ in lines
+        (chromosome, int(start), int(end))
+        for chr, start, end in lines
         if chr == f'chr{chromosome}'
     ]
 
     points_in_sequence_for_chromosome = sorted(points_in_sequence_for_chromosome, key=lambda x: x[1])
 
     regions = []
-    for i in range(len(points_in_sequence_for_chromosome) - 1):
-        start = points_in_sequence_for_chromosome[i][1] - flank_by
-        end = points_in_sequence_for_chromosome[i + 1][1] + flank_by
-        regions.append(ChromatinRegion(chromosome=f"chr{chromosome}", start=start, end=end))
+    for chr, start, end in points_in_sequence_for_chromosome:
+        start = max(0, start - flank_by)
+        end = end + flank_by
+        regions.append(ChromatinRegion(chromosome=f"chr{chr}", start=start, end=end))
 
     return regions
 
@@ -195,7 +194,7 @@ def main():
         id=args.project_id,
         authors=args.project_authors,
         species=args.project_species,
-        cell_lines=args.project_cell_lines
+        cell_lines=[args.project_cell_line]
     )
 
     configuration = Enhancer3dProjectConfiguration(
@@ -210,7 +209,13 @@ def main():
             enhancer_atlas_dataset_name=args.enhancer_atlas_dataset_name,
             enhancer_atlas_dataset_type=Enhancer3dEnhancerAtlasDatasetType(args.enhancer_atlas_dataset_type),
             gencode_annotation_dataset_name=args.gencode_annotation_dataset_name,
-            gencode_annotation_dataset_type=Enhancer3dGencodeAnnotationDatasetType(args.gencode_annotation_dataset_type)
+            gencode_annotation_dataset_type=Enhancer3dGencodeAnnotationDatasetType(args.gencode_annotation_dataset_type),
+            metadata=Enhancer3dProjectDatasetMetadata(
+                cell_line=args.project_cell_line,
+                species=args.project_species,
+                authors=args.project_authors,
+                modeling_pipeline="cudaMMC"
+            )
         )
         for chromosome in args.ensemble_id_chromosomes
         for region in extract_chromosomal_region_from_file(args.input_segments_file, chromosome, args.regions_flank_by)
