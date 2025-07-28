@@ -116,7 +116,6 @@ def _distances_for_relevant_projects(spark: SparkSession, relevant_projects_df: 
     return distances_df.alias('distances')
 
 
-
 def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_projects_df: DataFrame) -> DataFrame:
     links_df = (
         spark

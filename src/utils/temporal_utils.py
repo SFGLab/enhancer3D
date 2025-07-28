@@ -45,6 +45,8 @@ async def get_temporal_worker(
         workflows=workflows,
         activities=activities,
         # activity_executor=ThreadPoolExecutor(),
-        activity_executor=ProcessPoolExecutor(),
+        activity_executor=ProcessPoolExecutor(
+            max_workers=int(os.environ.get("TEMPORAL_ACTIVITY_EXECUTOR_MAX_WORKERS", 8))
+        ),
         shared_state_manager=SharedStateManager.create_from_multiprocessing(Manager()),
     )

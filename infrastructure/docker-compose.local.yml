@@ -64,3 +64,11 @@ services:
     jupyter:
         profiles:
             - "donotstart"
+
+    app_servant:
+        profiles:
+            - "donotstart"
+
+    app_api:
+        profiles:
+            - "donotstart"
