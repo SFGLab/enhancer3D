@@ -2,7 +2,8 @@ services:
     bucket:
         ports:
             - "9001:9001"
-
+        volumes:
+            - /mnt/raid/enhancer3d_bucketfs/_data/:/data/
 #    mongo:
 #        deploy:
 #            resources:
