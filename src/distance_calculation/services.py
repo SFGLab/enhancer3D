@@ -51,8 +51,8 @@ def extract_regional_genes_and_enhancers_for_ensemble(
     hydrated_gencode_dataset: pd.DataFrame
 ) -> RegionalGenesAndEnhancersDataset:
     region_chr = ensemble_region.chromosome
-    region_start = ensemble.first_bin
-    region_end = ensemble.last_bin
+    region_start = ensemble_region.start if ensemble_region.start >= ensemble.first_bin else ensemble.first_bin
+    region_end = ensemble_region.end if ensemble_region.end <= ensemble.last_bin else ensemble.last_bin
 
     region_pr = pr.PyRanges({
         "Chromosome": [region_chr],
