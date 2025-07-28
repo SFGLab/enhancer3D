@@ -111,6 +111,7 @@ def find_potential_pairs_of_enhancers_promoters_for_project(input: FindPotential
 
     activity.logger.info(f"Extracting genes and enhancers for the project {project}")
     regional_genes_and_enhancers_dataset = extract_regional_genes_and_enhancers_for_ensemble(
+        ensemble=ensemble,
         ensemble_region=dataset.ensemble_region,
         hydrated_enhancer_dataset=hydrated_enhancer_dataset,
         hydrated_gencode_dataset=hydrated_gencode_dataset
