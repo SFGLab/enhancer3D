@@ -51,7 +51,12 @@ def _projects_by_cell_line(spark: SparkSession, cell_line: str) -> DataFrame:
     )
 
 
-def _distances_for_relevant_projects(spark: SparkSession, relevant_projects_df: DataFrame, regions: List[PartialChromatinRegion]) -> DataFrame:
+def _distances_for_relevant_projects(
+    spark: SparkSession,
+    relevant_projects_df: DataFrame,
+    regions: List[PartialChromatinRegion],
+    gene_ids: List[str]
+) -> DataFrame:
     distances_df = (
         spark
         .read
@@ -89,6 +94,12 @@ def _distances_for_relevant_projects(spark: SparkSession, relevant_projects_df: 
         )
     )
 
+    if gene_ids and len(gene_ids) == 1:
+        distances_df = distances_df.where(F.col('gene_id').like(f"{gene_ids[0]}%"))
+
+    if gene_ids and len(gene_ids) > 1:
+        distances_df = distances_df.where(F.col('gene_id').isin(gene_ids))
+
     if regions and len(regions) > 0:
         regions_schema = T.StructType([
             T.StructField("chr", T.StringType(), False),
@@ -116,7 +127,12 @@ def _distances_for_relevant_projects(spark: SparkSession, relevant_projects_df: 
     return distances_df.alias('distances')
 
 
-def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_projects_df: DataFrame) -> DataFrame:
+def _distances_with_links_for_ensemble_ids(
+    spark: SparkSession,
+    relevant_projects_df: DataFrame,
+    regions: List[PartialChromatinRegion] = None,
+    gene_ids: List[str] = None
+) -> DataFrame:
     links_df = (
         spark
         .read
@@ -124,7 +140,7 @@ def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_project
         .alias("links")
     )
 
-    distances_df = _distances_for_relevant_projects(spark, relevant_projects_df)
+    distances_df = _distances_for_relevant_projects(spark, relevant_projects_df, regions, gene_ids)
 
     distances_with_links_df = (
         distances_df
@@ -164,7 +180,7 @@ def _distances_with_links_for_ensemble_ids(spark: SparkSession, relevant_project
 
 def query_cell_line_with_links(spark: SparkSession, request_id: str, input: CellLineWithLinksInput) -> Response:
     relevant_projects_df = _projects_by_cell_line(spark, input.cell_line)
-    distances_with_links_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_df)
+    distances_with_links_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_df, input.regions, input.gene_ids)
 
     path = f"s3a://database/results/{request_id}.parquet"
     distances_with_links_df.repartition(1).write.mode("overwrite").parquet(path)
@@ -179,16 +195,15 @@ def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input
     relevant_projects_base_df = _projects_by_cell_line(spark, input.cell_line_base)
     relevant_projects_compare_df = _projects_by_cell_line(spark, input.cell_line_compare)
 
-    distances_with_links_base_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_base_df)
-    distances_with_links_compare_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_compare_df)
+    distances_with_links_base_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_base_df, input.regions, input.gene_ids)
+    distances_with_links_compare_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_compare_df, input.regions, input.gene_ids)
 
     cross_comparison_df = (
-        distances_with_links_base_df
+        distances_with_links_base_df.alias('distances_base')
         .join(
-            distances_with_links_compare_df,
+            distances_with_links_compare_df.alias('distances_compare'),
             on=['gene_id', 'enh_id'],
-            how='inner',
-            suffixes=('_base', '_compare')
+            how='inner'
         )
         .select(
             'gene_id',
