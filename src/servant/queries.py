@@ -28,7 +28,6 @@ def _projects_by_cell_line(spark: SparkSession, cell_line: str, regions: List[Pa
     )
 
     if regions and len(regions) > 0:
-        print('Filtering projects by regions')
         regions_schema = T.StructType([
             T.StructField("chromosome", T.StringType(), False),
             T.StructField("start", T.IntegerType(), True),
@@ -39,8 +38,6 @@ def _projects_by_cell_line(spark: SparkSession, cell_line: str, regions: List[Pa
             [region.model_dump() for region in regions],
             schema=regions_schema
         )
-
-        print(regions_df)
 
         projects_df = (
             projects_df
@@ -63,6 +60,7 @@ def _distances_for_relevant_projects(
     regions: List[PartialChromatinRegion],
     gene_ids: List[str]
 ) -> DataFrame:
+    print('here 1')
     distances_df = (
         spark
         .read
@@ -100,16 +98,14 @@ def _distances_for_relevant_projects(
         )
     )
 
-    print(f"Found {distances_df.count()} distances for relevant projects")
-
+    print('here 2')
     if gene_ids and len(gene_ids) == 1:
-        distances_df = distances_df.where(F.col('gene_id').like(f"{gene_ids[0]}%"))
+        distances_df = distances_df.where(F.col('gene_id').like(f"%{gene_ids[0]}%"))
 
     if gene_ids and len(gene_ids) > 1:
         distances_df = distances_df.where(F.col('gene_id').isin(gene_ids))
 
     if regions and len(regions) > 0:
-        print('here')
         regions_schema = T.StructType([
             T.StructField("chromosome", T.StringType(), False),
             T.StructField("start", T.IntegerType(), True),
@@ -121,20 +117,22 @@ def _distances_for_relevant_projects(
             schema=regions_schema
         )
 
-        print(regions_df)
-
+        print('here 3')
         distances_df = (
             distances_df
             .join(
                 F.broadcast(regions_df),
                 (distances_df.enh_chr == regions_df.chromosome) &
                 (regions_df.start.isNull() | (distances_df.enh_start <= regions_df.end)) &
-                (regions_df.end.isNull() | (distances_df.enh_end >= regions_df.start)),
+                (regions_df.end.isNull() | (distances_df.enh_end >= regions_df.start)) &
+                (distances_df.gene_chr == regions_df.chromosome) &
+                (regions_df.start.isNull() | (distances_df.gene_start <= regions_df.end)) &
+                (regions_df.end.isNull() | (distances_df.gene_end >= regions_df.start)),
                 "inner"
             )
             .drop("chromosome", "start", "end")
         )
-
+    print('here 4')
     return distances_df.alias('distances')
 
 
@@ -150,11 +148,11 @@ def _distances_with_links_for_ensemble_ids(
         .parquet("s3a://database/links")
         .alias("links")
     )
-
     print(f"Found {links_df.count()} links")
-    distances_df = _distances_for_relevant_projects(spark, relevant_projects_df, regions, gene_ids)
 
+    distances_df = _distances_for_relevant_projects(spark, relevant_projects_df, regions, gene_ids)
     print(f"Found {distances_df.count()} distances after filtering by regions and genes")
+
     distances_with_links_df = (
         distances_df
         .repartition(64, 'cell_line', 'gene_id', 'enh_id')
