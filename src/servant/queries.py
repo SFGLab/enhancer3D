@@ -273,7 +273,7 @@ def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input
     print('here 3')
 
     path = f"s3a://database/results/{request_id}.parquet"
-    cross_comparison_df.write.mode("overwrite").parquet(path)
+    cross_comparison_df.repartition(1).write.mode("overwrite").parquet(path)
 
     return Response(
         request_id=request_id,
