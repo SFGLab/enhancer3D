@@ -9,18 +9,52 @@ from statsmodels.sandbox.stats.multicomp import multipletests
 
 from servant.models import CellLineWithLinksInput, Response, PartialChromatinRegion
 
-def _projects_by_cell_line(spark: SparkSession, cell_line: str) -> DataFrame:
-    return (
+def _projects_by_cell_line(spark: SparkSession, cell_line: str, regions: List[PartialChromatinRegion] = None) -> DataFrame:
+    projects_df = (
         spark
         .read
         .json("s3a://database/project_configuration", multiLine=True)
         .select(
             F.col('project_id'),
-            F.explode('datasets.ensemble_id').alias('ensemble_id'),
-            F.explode('datasets.metadata.cell_line').alias('cell_line')
+            F.explode('datasets').alias('datasets')
+        )
+        .select(
+            F.col('project_id'),
+            F.col('datasets.ensemble_id').alias('ensemble_id'),
+            F.col('datasets.ensemble_region').alias('ensemble_region'),
+            F.col('datasets.metadata.cell_line').alias('cell_line'),
         )
         .where(F.col('cell_line') == cell_line)
     )
+
+    if regions and len(regions) > 0:
+        print('Filtering projects by regions')
+        regions_schema = T.StructType([
+            T.StructField("chr", T.StringType(), False),
+            T.StructField("start", T.IntegerType(), False),
+            T.StructField("end", T.IntegerType(), False)
+        ])
+
+        regions_df = spark.createDataFrame(
+            [region.model_dump() for region in regions],
+            schema=regions_schema
+        )
+
+        print(regions_df)
+
+        projects_df = (
+            projects_df
+            .join(
+                F.broadcast(regions_df),
+                (projects_df.ensemble_region == regions_df.chr) &
+                (projects_df.ensemble_region.start <= regions_df.end) &
+                (projects_df.ensemble_region.end >= regions_df.start),
+                "inner"
+            )
+            .drop("chr", "start", "end")
+        )
+
+    return projects_df.alias('projects')
 
 
 def _distances_for_relevant_projects(
@@ -194,8 +228,8 @@ def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input
         reject, pvals_corrected, _, _ = multipletests(pvalues, alpha=alpha, method='bonferroni')
         return float(np.mean(pvals_corrected))
 
-    relevant_projects_base_df = _projects_by_cell_line(spark, input.cell_line_base)
-    relevant_projects_compare_df = _projects_by_cell_line(spark, input.cell_line_compare)
+    relevant_projects_base_df = _projects_by_cell_line(spark, input.cell_line_base, input.regions)
+    relevant_projects_compare_df = _projects_by_cell_line(spark, input.cell_line_compare, input.regions)
     print(f"Found {relevant_projects_base_df.count()} projects for base cell line {input.cell_line_base}")
     print(f"Found {relevant_projects_compare_df.count()} projects for compare cell line {input.cell_line_compare}")
 
