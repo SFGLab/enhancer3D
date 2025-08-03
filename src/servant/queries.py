@@ -9,6 +9,34 @@ from statsmodels.sandbox.stats.multicomp import multipletests
 
 from servant.models import CellLineWithLinksInput, Response, PartialChromatinRegion
 
+
+@F.udf(T.ArrayType(T.DoubleType()))
+def diff(A, B):
+    return np.abs(np.array(A) - np.array(B)).tolist()
+
+
+@F.udf(T.DoubleType())
+def var(A):
+    return float(np.var(A))
+
+
+@F.udf(T.DoubleType())
+def avg(A):
+    return float(np.mean(A))
+
+
+@F.udf(T.DoubleType())
+def mannwhiteneyu(ref, mod):
+    result = stats.mannwhitneyu(np.array(ref), np.array(mod), alternative='two-sided')
+    return float(result.pvalue)
+
+
+@F.udf(T.DoubleType())
+def bonferroni_correction(pvalues, alpha=0.05):
+    reject, pvals_corrected, _, _ = multipletests(pvalues, alpha=alpha, method='bonferroni')
+    return float(np.mean(pvals_corrected))
+
+
 def _projects_by_cell_line(spark: SparkSession, cell_line: str, regions: List[PartialChromatinRegion] = None) -> DataFrame:
     projects_df = (
         spark
@@ -60,7 +88,6 @@ def _distances_for_relevant_projects(
     regions: List[PartialChromatinRegion],
     gene_ids: List[str]
 ) -> DataFrame:
-    print('here 1')
     distances_df = (
         spark
         .read
@@ -98,7 +125,6 @@ def _distances_for_relevant_projects(
         )
     )
 
-    print('here 2')
     if gene_ids and len(gene_ids) == 1:
         distances_df = distances_df.where(F.col('gene_id').like(f"%{gene_ids[0]}%"))
 
@@ -117,7 +143,6 @@ def _distances_for_relevant_projects(
             schema=regions_schema
         )
 
-        print('here 3')
         distances_df = (
             distances_df
             .join(
@@ -132,7 +157,7 @@ def _distances_for_relevant_projects(
             )
             .drop("chromosome", "start", "end")
         )
-    print('here 4')
+
     return distances_df.alias('distances')
 
 
@@ -148,11 +173,8 @@ def _distances_with_links_for_ensemble_ids(
         .parquet("s3a://database/links")
         .alias("links")
     )
-    print(f"Found {links_df.count()} links")
 
     distances_df = _distances_for_relevant_projects(spark, relevant_projects_df, regions, gene_ids)
-    print(f"Found {distances_df.count()} distances after filtering by regions and genes")
-
     distances_with_links_df = (
         distances_df
         .repartition(64, 'cell_line', 'gene_id', 'enh_id')
@@ -203,38 +225,11 @@ def query_cell_line_with_links(spark: SparkSession, request_id: str, input: Cell
 
 
 def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input: CellLineWithLinksInput) -> Response:
-    print(f"Comparing cell lines: {input.cell_line_base} vs {input.cell_line_compare}, regions: {input.regions}, genes: {input.gene_ids}")
-    @F.udf(T.ArrayType(T.DoubleType()))
-    def diff(A, B):
-        return np.abs(np.array(A) - np.array(B)).tolist()
-
-    @F.udf(T.DoubleType())
-    def var(A):
-        return float(np.var(A))
-
-    @F.udf(T.DoubleType())
-    def avg(A):
-        return float(np.mean(A))
-
-    @F.udf(T.DoubleType())
-    def mannwhiteneyu(ref, mod):
-        result = stats.mannwhitneyu(np.array(ref), np.array(mod), alternative='two-sided')
-        return float(result.pvalue)
-
-    @F.udf(T.DoubleType())
-    def bonferroni_correction(pvalues, alpha=0.05):
-        reject, pvals_corrected, _, _ = multipletests(pvalues, alpha=alpha, method='bonferroni')
-        return float(np.mean(pvals_corrected))
-
     relevant_projects_base_df = _projects_by_cell_line(spark, input.cell_line_base, input.regions)
     relevant_projects_compare_df = _projects_by_cell_line(spark, input.cell_line_compare, input.regions)
-    print(f"Found {relevant_projects_base_df.count()} projects for base cell line {input.cell_line_base}")
-    print(f"Found {relevant_projects_compare_df.count()} projects for compare cell line {input.cell_line_compare}")
 
     distances_with_links_base_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_base_df, input.regions, input.gene_ids)
     distances_with_links_compare_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_compare_df, input.regions, input.gene_ids)
-    print(f"Found {distances_with_links_base_df.count()} distances with links for base cell line {input.cell_line_base}")
-    print(f"Found {distances_with_links_compare_df.count()} distances with links for compare cell line {input.cell_line_compare}")
 
     cross_comparison_df = (
         distances_with_links_base_df.alias('distances_base')
@@ -265,8 +260,6 @@ def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input
             mannwhiteneyu(F.col('distances_base.dist'), F.col('distances_compare.dist')).alias('mannwhiteneyu_pvalue')
         )
     )
-
-    print(f"Cross comparison found {cross_comparison_df.count()} records")
 
     path = f"s3a://database/results/{request_id}.parquet"
     cross_comparison_df.repartition(1).write.mode("overwrite").parquet(path)
