@@ -9,34 +9,6 @@ from statsmodels.sandbox.stats.multicomp import multipletests
 
 from servant.models import CellLineWithLinksInput, Response, PartialChromatinRegion
 
-
-@F.udf(T.ArrayType(T.DoubleType()))
-def diff(A, B):
-    return np.abs(np.array(A) - np.array(B)).tolist()
-
-
-@F.udf(T.DoubleType())
-def var(A):
-    return float(np.var(A))
-
-
-@F.udf(T.DoubleType())
-def avg(A):
-    return float(np.mean(A))
-
-
-@F.udf(T.DoubleType())
-def mannwhiteneyu(ref, mod):
-    result = stats.mannwhitneyu(np.array(ref), np.array(mod), alternative='two-sided')
-    return float(result.pvalue)
-
-
-@F.udf(T.DoubleType())
-def bonferroni_correction(pvalues, alpha=0.05):
-    reject, pvals_corrected, _, _ = multipletests(pvalues, alpha=alpha, method='bonferroni')
-    return float(np.mean(pvals_corrected))
-
-
 def _projects_by_cell_line(spark: SparkSession, cell_line: str) -> DataFrame:
     return (
         spark
@@ -192,6 +164,28 @@ def query_cell_line_with_links(spark: SparkSession, request_id: str, input: Cell
 
 
 def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input: CellLineWithLinksInput) -> Response:
+    @F.udf(T.ArrayType(T.DoubleType()))
+    def diff(A, B):
+        return np.abs(np.array(A) - np.array(B)).tolist()
+
+    @F.udf(T.DoubleType())
+    def var(A):
+        return float(np.var(A))
+
+    @F.udf(T.DoubleType())
+    def avg(A):
+        return float(np.mean(A))
+
+    @F.udf(T.DoubleType())
+    def mannwhiteneyu(ref, mod):
+        result = stats.mannwhitneyu(np.array(ref), np.array(mod), alternative='two-sided')
+        return float(result.pvalue)
+
+    @F.udf(T.DoubleType())
+    def bonferroni_correction(pvalues, alpha=0.05):
+        reject, pvals_corrected, _, _ = multipletests(pvalues, alpha=alpha, method='bonferroni')
+        return float(np.mean(pvals_corrected))
+
     relevant_projects_base_df = _projects_by_cell_line(spark, input.cell_line_base)
     relevant_projects_compare_df = _projects_by_cell_line(spark, input.cell_line_compare)
 
