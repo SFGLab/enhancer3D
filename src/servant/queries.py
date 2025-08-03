@@ -191,6 +191,8 @@ def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input
 
     distances_with_links_base_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_base_df, input.regions, input.gene_ids)
     distances_with_links_compare_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_compare_df, input.regions, input.gene_ids)
+    print("Base distances with links count:", distances_with_links_base_df.count())
+    print("Compare distances with links count:", distances_with_links_compare_df.count())
 
     cross_comparison_df = (
         distances_with_links_base_df.alias('distances_base')
