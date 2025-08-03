@@ -73,6 +73,7 @@ def _distances_for_relevant_projects(
         distances_df = distances_df.where(F.col('gene_id').isin(gene_ids))
 
     if regions and len(regions) > 0:
+        print('here')
         regions_schema = T.StructType([
             T.StructField("chr", T.StringType(), False),
             T.StructField("start", T.IntegerType(), False),
@@ -83,6 +84,8 @@ def _distances_for_relevant_projects(
             [region.model_dump() for region in regions],
             schema=regions_schema
         )
+
+        print(regions_df)
 
         distances_df = (
             distances_df
@@ -191,8 +194,6 @@ def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input
 
     distances_with_links_base_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_base_df, input.regions, input.gene_ids)
     distances_with_links_compare_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_compare_df, input.regions, input.gene_ids)
-    print("Base distances with links count:", distances_with_links_base_df.count())
-    print("Compare distances with links count:", distances_with_links_compare_df.count())
 
     cross_comparison_df = (
         distances_with_links_base_df.alias('distances_base')
