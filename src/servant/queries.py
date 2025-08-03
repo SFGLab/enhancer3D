@@ -37,7 +37,12 @@ def bonferroni_correction(pvalues, alpha=0.05):
     return float(np.mean(pvals_corrected))
 
 
-def _projects_by_cell_line(spark: SparkSession, cell_line: str, regions: List[PartialChromatinRegion] = None) -> DataFrame:
+def _projects_by_cell_line(
+    spark: SparkSession,
+    cell_line: str,
+    species: str = None,
+    regions: List[PartialChromatinRegion] = None
+) -> DataFrame:
     projects_df = (
         spark
         .read
@@ -51,9 +56,13 @@ def _projects_by_cell_line(spark: SparkSession, cell_line: str, regions: List[Pa
             F.col('datasets.ensemble_id').alias('ensemble_id'),
             F.col('datasets.ensemble_region').alias('ensemble_region'),
             F.col('datasets.metadata.cell_line').alias('cell_line'),
+            F.col('datasets.metadata.species').alias('species'),
         )
         .where(F.col('cell_line') == cell_line)
     )
+
+    if species:
+        projects_df = projects_df.where(F.array_contains(F.col('species'), species))
 
     if regions and len(regions) > 0:
         regions_schema = T.StructType([
@@ -212,7 +221,7 @@ def _distances_with_links_for_ensemble_ids(
 
 
 def query_cell_line_with_links(spark: SparkSession, request_id: str, input: CellLineWithLinksInput) -> Response:
-    relevant_projects_df = _projects_by_cell_line(spark, input.cell_line)
+    relevant_projects_df = _projects_by_cell_line(spark, input.cell_line, input.species)
     distances_with_links_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_df, input.regions, input.gene_ids)
 
     path = f"s3a://database/results/{request_id}.parquet"
@@ -225,8 +234,8 @@ def query_cell_line_with_links(spark: SparkSession, request_id: str, input: Cell
 
 
 def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input: CellLineWithLinksInput) -> Response:
-    relevant_projects_base_df = _projects_by_cell_line(spark, input.cell_line_base, input.regions)
-    relevant_projects_compare_df = _projects_by_cell_line(spark, input.cell_line_compare, input.regions)
+    relevant_projects_base_df = _projects_by_cell_line(spark, input.cell_line_base, input.regions, input.species_base)
+    relevant_projects_compare_df = _projects_by_cell_line(spark, input.cell_line_compare, input.regions, input.species_compare)
 
     distances_with_links_base_df = (
         _distances_with_links_for_ensemble_ids(spark, relevant_projects_base_df, input.regions, input.gene_ids)

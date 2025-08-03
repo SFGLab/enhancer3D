@@ -12,6 +12,7 @@ class PartialChromatinRegion(BaseModel):
 class CellLineWithLinksInput(BaseModel):
     type: Literal["cell_line_with_links"] = "cell_line_with_links"
     cell_line: str
+    species: Optional[str] = None
     regions: List[PartialChromatinRegion] = []
     gene_ids: List[str] = []
 
@@ -19,7 +20,9 @@ class CellLineWithLinksInput(BaseModel):
 class CellLinkCrossComparisonInput(BaseModel):
     type: Literal["cell_link_cross_comparison"] = "cell_link_cross_comparison"
     cell_line_base: str
+    species_base: Optional[str] = None
     cell_line_compare: str
+    species_compare: Optional[str] = None
     regions: List[PartialChromatinRegion] = []
     gene_ids: List[str] = []
 
