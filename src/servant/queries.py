@@ -229,14 +229,22 @@ def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input
     relevant_projects_compare_df = _projects_by_cell_line(spark, input.cell_line_compare, input.regions)
     print('here 1')
 
-    distances_with_links_base_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_base_df, input.regions, input.gene_ids)
-    distances_with_links_compare_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_compare_df, input.regions, input.gene_ids)
+    distances_with_links_base_df = (
+        _distances_with_links_for_ensemble_ids(spark, relevant_projects_base_df, input.regions, input.gene_ids)
+        .repartition(64, 'gene_id', 'enh_id')
+        .alias('distances_base')
+    )
+    distances_with_links_compare_df = (
+        _distances_with_links_for_ensemble_ids(spark, relevant_projects_compare_df, input.regions, input.gene_ids)
+        .repartition(64, 'gene_id', 'enh_id')
+        .alias('distances_compare')
+    )
     print('here 2')
 
     cross_comparison_df = (
-        distances_with_links_base_df.alias('distances_base')
+        distances_with_links_base_df
         .join(
-            distances_with_links_compare_df.alias('distances_compare'),
+            distances_with_links_compare_df,
             on=['gene_id', 'enh_id'],
             how='inner'
         )
@@ -265,7 +273,7 @@ def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input
     print('here 3')
 
     path = f"s3a://database/results/{request_id}.parquet"
-    cross_comparison_df.repartition(1).write.mode("overwrite").parquet(path)
+    cross_comparison_df.write.mode("overwrite").parquet(path)
 
     return Response(
         request_id=request_id,
