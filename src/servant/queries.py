@@ -30,9 +30,9 @@ def _projects_by_cell_line(spark: SparkSession, cell_line: str, regions: List[Pa
     if regions and len(regions) > 0:
         print('Filtering projects by regions')
         regions_schema = T.StructType([
-            T.StructField("chr", T.StringType(), False),
-            T.StructField("start", T.IntegerType(), False),
-            T.StructField("end", T.IntegerType(), False)
+            T.StructField("chromosome", T.StringType(), False),
+            T.StructField("start", T.IntegerType(), True),
+            T.StructField("end", T.IntegerType(), True)
         ])
 
         regions_df = spark.createDataFrame(
@@ -46,12 +46,12 @@ def _projects_by_cell_line(spark: SparkSession, cell_line: str, regions: List[Pa
             projects_df
             .join(
                 F.broadcast(regions_df),
-                (projects_df.ensemble_region == regions_df.chr) &
-                (projects_df.ensemble_region.start <= regions_df.end) &
-                (projects_df.ensemble_region.end >= regions_df.start),
+                (projects_df.ensemble_region.chromosome == regions_df.chromosome) &
+                (regions_df.start.isNull() | (projects_df.ensemble_region.start <= regions_df.end)) &
+                (regions_df.end.isNull() | (projects_df.ensemble_region.end >= regions_df.start)),
                 "inner"
             )
-            .drop("chr", "start", "end")
+            .drop("chromosome", "start", "end")
         )
 
     return projects_df.alias('projects')
@@ -111,9 +111,9 @@ def _distances_for_relevant_projects(
     if regions and len(regions) > 0:
         print('here')
         regions_schema = T.StructType([
-            T.StructField("chr", T.StringType(), False),
-            T.StructField("start", T.IntegerType(), False),
-            T.StructField("end", T.IntegerType(), False)
+            T.StructField("chromosome", T.StringType(), False),
+            T.StructField("start", T.IntegerType(), True),
+            T.StructField("end", T.IntegerType(), True)
         ])
 
         regions_df = spark.createDataFrame(
@@ -127,12 +127,12 @@ def _distances_for_relevant_projects(
             distances_df
             .join(
                 F.broadcast(regions_df),
-                (distances_df.enh_chr == regions_df.chr) &
-                (distances_df.enh_start <= regions_df.end) &
-                (distances_df.enh_end >= regions_df.start),
+                (distances_df.enh_chr == regions_df.chromosome) &
+                (regions_df.start.isNull() | (distances_df.enh_start <= regions_df.end)) &
+                (regions_df.end.isNull() | (distances_df.enh_end >= regions_df.start)),
                 "inner"
             )
-            .drop("chr", "start", "end")
+            .drop("chromosome", "start", "end")
         )
 
     return distances_df.alias('distances')
