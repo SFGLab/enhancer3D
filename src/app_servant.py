@@ -20,6 +20,7 @@ async def main() -> None:
         workflows=[
             ExecuteQueryWorkflow,
         ],
+        use_thread_pool=True
     )
 
     await temporal_worker.run()

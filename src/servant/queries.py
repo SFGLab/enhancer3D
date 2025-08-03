@@ -66,6 +66,8 @@ def _distances_for_relevant_projects(
         )
     )
 
+    print(f"Found {distances_df.count()} distances for relevant projects")
+
     if gene_ids and len(gene_ids) == 1:
         distances_df = distances_df.where(F.col('gene_id').like(f"{gene_ids[0]}%"))
 
@@ -115,8 +117,10 @@ def _distances_with_links_for_ensemble_ids(
         .alias("links")
     )
 
+    print(f"Found {links_df.count()} links")
     distances_df = _distances_for_relevant_projects(spark, relevant_projects_df, regions, gene_ids)
 
+    print(f"Found {distances_df.count()} distances after filtering by regions and genes")
     distances_with_links_df = (
         distances_df
         .repartition(64, 'cell_line', 'gene_id', 'enh_id')
@@ -167,6 +171,7 @@ def query_cell_line_with_links(spark: SparkSession, request_id: str, input: Cell
 
 
 def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input: CellLineWithLinksInput) -> Response:
+    print(f"Comparing cell lines: {input.cell_line_base} vs {input.cell_line_compare}, regions: {input.regions}, genes: {input.gene_ids}")
     @F.udf(T.ArrayType(T.DoubleType()))
     def diff(A, B):
         return np.abs(np.array(A) - np.array(B)).tolist()
@@ -191,9 +196,13 @@ def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input
 
     relevant_projects_base_df = _projects_by_cell_line(spark, input.cell_line_base)
     relevant_projects_compare_df = _projects_by_cell_line(spark, input.cell_line_compare)
+    print(f"Found {relevant_projects_base_df.count()} projects for base cell line {input.cell_line_base}")
+    print(f"Found {relevant_projects_compare_df.count()} projects for compare cell line {input.cell_line_compare}")
 
     distances_with_links_base_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_base_df, input.regions, input.gene_ids)
     distances_with_links_compare_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_compare_df, input.regions, input.gene_ids)
+    print(f"Found {distances_with_links_base_df.count()} distances with links for base cell line {input.cell_line_base}")
+    print(f"Found {distances_with_links_compare_df.count()} distances with links for compare cell line {input.cell_line_compare}")
 
     cross_comparison_df = (
         distances_with_links_base_df.alias('distances_base')
@@ -224,6 +233,8 @@ def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input
             mannwhiteneyu(F.col('distances_base.dist'), F.col('distances_compare.dist')).alias('mannwhiteneyu_pvalue')
         )
     )
+
+    print(f"Cross comparison found {cross_comparison_df.count()} records")
 
     path = f"s3a://database/results/{request_id}.parquet"
     cross_comparison_df.repartition(1).write.mode("overwrite").parquet(path)

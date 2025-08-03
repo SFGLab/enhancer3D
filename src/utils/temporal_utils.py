@@ -1,6 +1,6 @@
 import logging
 import os
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from multiprocessing import Manager
 from typing import Sequence, Callable, Type, Optional
 
@@ -36,6 +36,7 @@ async def get_temporal_worker(
     workflows: Sequence[Type],
     temporal_endpoint: Optional[str] = None,
     temporal_namespace: Optional[str] = None,
+    use_thread_pool: bool = False
 ) -> Worker:
     client = await get_temporal_client(temporal_endpoint, temporal_namespace)
     logger.info(f"Starting worker for task queue {task_queue}")
@@ -44,9 +45,10 @@ async def get_temporal_worker(
         task_queue=task_queue,
         workflows=workflows,
         activities=activities,
-        # activity_executor=ThreadPoolExecutor(),
-        activity_executor=ProcessPoolExecutor(
-            max_workers=int(os.environ.get("TEMPORAL_ACTIVITY_EXECUTOR_MAX_WORKERS", 8))
+        activity_executor=(
+            ProcessPoolExecutor(max_workers=int(os.environ.get("TEMPORAL_ACTIVITY_EXECUTOR_MAX_WORKERS", 8)))
+            if not use_thread_pool
+            else ThreadPoolExecutor(max_workers=int(os.environ.get("TEMPORAL_ACTIVITY_EXECUTOR_MAX_WORKERS", 8)))
         ),
         shared_state_manager=SharedStateManager.create_from_multiprocessing(Manager()),
     )
