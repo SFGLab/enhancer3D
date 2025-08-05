@@ -7,7 +7,7 @@ from pyspark.sql.connect.dataframe import DataFrame
 from scipy import stats
 from statsmodels.sandbox.stats.multicomp import multipletests
 
-from servant.models import CellLineWithLinksInput, Response, PartialChromatinRegion
+from servant.models import CellLineWithLinksInput, Response, PartialChromatinRegion, CellLinkCrossComparisonInput
 
 
 @F.udf(T.ArrayType(T.DoubleType()))
@@ -221,7 +221,7 @@ def _distances_with_links_for_ensemble_ids(
 
 
 def query_cell_line_with_links(spark: SparkSession, request_id: str, input: CellLineWithLinksInput) -> Response:
-    relevant_projects_df = _projects_by_cell_line(spark, input.cell_line, input.species)
+    relevant_projects_df = _projects_by_cell_line(spark, input.cell_line, input.species, input.regions)
     distances_with_links_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_df, input.regions, input.gene_ids)
 
     path = f"s3a://database/results/{request_id}.parquet"
@@ -233,9 +233,9 @@ def query_cell_line_with_links(spark: SparkSession, request_id: str, input: Cell
     )
 
 
-def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input: CellLineWithLinksInput) -> Response:
-    relevant_projects_base_df = _projects_by_cell_line(spark, input.cell_line_base, input.regions, input.species_base)
-    relevant_projects_compare_df = _projects_by_cell_line(spark, input.cell_line_compare, input.regions, input.species_compare)
+def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input: CellLinkCrossComparisonInput) -> Response:
+    relevant_projects_base_df = _projects_by_cell_line(spark, input.cell_line_base, input.species_base, input.regions)
+    relevant_projects_compare_df = _projects_by_cell_line(spark, input.cell_line_compare, input.species_compare, input.regions)
 
     distances_with_links_base_df = (
         _distances_with_links_for_ensemble_ids(spark, relevant_projects_base_df, input.regions, input.gene_ids)
