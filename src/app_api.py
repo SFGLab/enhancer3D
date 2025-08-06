@@ -1,12 +1,16 @@
+import logging
 import uuid
 from typing import Optional
 
+import dotenv
 from fastapi import FastAPI
 
 from api.models import GetQueryStatusResponse, RequestQuery, RequestQueryResponse
 from servant.models import Query
 from utils.temporal_utils import get_temporal_client
 
+dotenv.load_dotenv()
+logging.basicConfig()
 app = FastAPI()
 
 @app.get("/query/{id}")

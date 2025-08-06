@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 import dotenv
+dotenv.load_dotenv()
 
 from servant.activities import execute_query
 from servant.workflows import ExecuteQueryWorkflow
@@ -27,6 +28,5 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    dotenv.load_dotenv()
     logging.basicConfig()
     asyncio.run(main())

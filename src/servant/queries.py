@@ -224,7 +224,7 @@ def query_cell_line_with_links(spark: SparkSession, request_id: str, input: Cell
     relevant_projects_df = _projects_by_cell_line(spark, input.cell_line, input.species, input.regions)
     distances_with_links_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_df, input.regions, input.gene_ids)
 
-    path = f"s3a://database/results/{request_id}.parquet"
+    path = f"s3a://database/results/{request_id}"
     distances_with_links_df.repartition(1).write.mode("overwrite").parquet(path)
 
     return Response(
@@ -269,7 +269,8 @@ def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input
             F.col('distances_base.enh_start').alias('enh_start'),
             F.col('distances_base.enh_end').alias('enh_end'),
             F.col('distances_base.enh_score').alias('enh_score'),
-            diff(F.col('distances_base.dist'), F.col('distances_compare.dist')).alias('diff_dist'),
+            avg(diff(F.col('distances_base.dist'), F.col('distances_compare.dist'))).alias('avg_diff_dist'),
+            var(diff(F.col('distances_base.dist'), F.col('distances_compare.dist'))).alias('var_diff_dist'),
             var(F.col('distances_base.dist')).alias('var_dist_base'),
             var(F.col('distances_compare.dist')).alias('var_dist_compare'),
             avg(F.col('distances_base.dist')).alias('avg_dist_base'),
@@ -278,7 +279,7 @@ def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input
         )
     )
 
-    path = f"s3a://database/results/{request_id}.parquet"
+    path = f"s3a://database/results/{request_id}"
     cross_comparison_df.repartition(1).write.mode("overwrite").parquet(path)
 
     return Response(
