@@ -16,8 +16,8 @@ def diff(A, B):
     B = np.array(B)
     max_length = max(len(A), len(B))
 
-    A = np.pad(A, (0, max_length - len(A)), mode='mean', constant_values=np.nan)
-    B = np.pad(B, (0, max_length - len(B)), mode='mean', constant_values=np.nan)
+    A = np.pad(A, (0, max_length - len(A)), mode='mean')
+    B = np.pad(B, (0, max_length - len(B)), mode='mean')
 
     return np.abs(A - B).tolist()
 
