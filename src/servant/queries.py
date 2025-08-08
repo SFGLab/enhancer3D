@@ -237,7 +237,10 @@ def _distances_with_links_for_ensemble_ids(
 
 def query_cell_line_with_links(spark: SparkSession, request_id: str, input: CellLineWithLinksInput) -> Response:
     relevant_projects_df = _projects_by_cell_line(spark, input.cell_line, input.species, input.regions)
-    distances_with_links_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_df, input.regions, input.gene_ids)
+    distances_with_links_df = (
+        _distances_with_links_for_ensemble_ids(spark, relevant_projects_df, input.regions, input.gene_ids)
+        .drop('dist')
+    )
 
     path = f"s3a://database/results/{request_id}"
     distances_with_links_df.repartition(1).write.mode("overwrite").parquet(path)
