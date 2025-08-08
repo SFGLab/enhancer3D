@@ -142,10 +142,10 @@ def _distances_for_relevant_projects(
             'gene_strand',
             'gene_type',
         )
-        .where(
-            (F.col('gene_type') == 'protein_coding')
-            # & (F.col('enh_tSS_distance') < 20_000)
-        )
+        # .where(
+        #     (F.col('gene_type') == 'protein_coding')
+        #     & (F.col('enh_tSS_distance') < 20_000)
+        # )
     )
 
     if gene_ids and len(gene_ids) == 1:
