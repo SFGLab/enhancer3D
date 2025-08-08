@@ -26,9 +26,15 @@ def avg(A):
 
 
 @F.udf(T.DoubleType())
-def mannwhiteneyu(ref, mod):
+def mannwhiteneyu_pvalue(ref, mod):
     result = stats.mannwhitneyu(np.array(ref), np.array(mod), alternative='two-sided')
     return float(result.pvalue)
+
+
+@F.udf(T.DoubleType())
+def mannwhiteneyu_statistic(ref, mod):
+    result = stats.mannwhitneyu(np.array(ref), np.array(mod), alternative='two-sided')
+    return float(result.statistic)
 
 
 @F.udf(T.DoubleType())
@@ -116,6 +122,7 @@ def _distances_for_relevant_projects(
             'enh_start',
             'enh_end',
             'enh_score',
+            'enh_loci',
             'avg_dist',
             'var_dist',
             'dist',
@@ -201,6 +208,7 @@ def _distances_with_links_for_ensemble_ids(
             F.col('distances.enh_start'),
             F.col('distances.enh_end'),
             F.col('distances.enh_score'),
+            F.col('distances.enh_loci'),
             F.col('distances.gene_id'),
             F.col('distances.gene_type'),
             F.col('distances.gene_chr'),
@@ -269,13 +277,15 @@ def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input
             F.col('distances_base.enh_start').alias('enh_start'),
             F.col('distances_base.enh_end').alias('enh_end'),
             F.col('distances_base.enh_score').alias('enh_score'),
+            F.col('distances_base.enh_loci').alias('enh_loci'),
             avg(diff(F.col('distances_base.dist'), F.col('distances_compare.dist'))).alias('avg_diff_dist'),
             var(diff(F.col('distances_base.dist'), F.col('distances_compare.dist'))).alias('var_diff_dist'),
             var(F.col('distances_base.dist')).alias('var_dist_base'),
             var(F.col('distances_compare.dist')).alias('var_dist_compare'),
             avg(F.col('distances_base.dist')).alias('avg_dist_base'),
             avg(F.col('distances_compare.dist')).alias('avg_dist_compare'),
-            mannwhiteneyu(F.col('distances_base.dist'), F.col('distances_compare.dist')).alias('mannwhiteneyu_pvalue')
+            mannwhiteneyu_pvalue(F.col('distances_base.dist'), F.col('distances_compare.dist')).alias('mannwhiteneyu_pvalue'),
+            mannwhiteneyu_statistic(F.col('distances_base.dist'), F.col('distances_compare.dist')).alias('mannwhiteneyu_statistic'),
         )
     )
 
