@@ -12,7 +12,14 @@ from servant.models import CellLineWithLinksInput, Response, PartialChromatinReg
 
 @F.udf(T.ArrayType(T.DoubleType()))
 def diff(A, B):
-    return np.abs(np.array(A) - np.array(B)).tolist()
+    A = np.array(A)
+    B = np.array(B)
+    max_length = max(len(A), len(B))
+
+    A = np.pad(A, (0, max_length - len(A)), mode='mean', constant_values=np.nan)
+    B = np.pad(B, (0, max_length - len(B)), mode='mean', constant_values=np.nan)
+
+    return np.abs(A - B).tolist()
 
 
 @F.udf(T.DoubleType())
