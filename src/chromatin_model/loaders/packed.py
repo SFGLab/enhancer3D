@@ -10,10 +10,19 @@ def load_chromatin_model_ensemble_from_filesystem(fs: AbstractFileSystem, data_p
     model_metadata_path = os.path.join(data_path, f'{model_name}.metadata.json')
     coordinates_path = os.path.join(data_path, f'{model_name}.coordinates.npy')
 
-    with fs.open(model_metadata_path, 'rb') as model_metadata_fp:
+    with fs.open(model_metadata_path, 'r') as model_metadata_fp:
         model_metadata: ChromatinModelEnsembleHead = ChromatinModelEnsembleHead.model_validate_json(model_metadata_fp.read())
 
     with fs.open(coordinates_path, 'rb') as coordinates_fp:
         coordinates = np.load(coordinates_fp)
 
     return ChromatinModelEnsemble.from_head(model_metadata, coordinates)
+
+
+def load_chromatin_model_ensemble_head_from_filesystem(fs: AbstractFileSystem, data_path: str, model_name: str) -> ChromatinModelEnsembleHead:
+    model_metadata_path = os.path.join(data_path, f'{model_name}.metadata.json')
+
+    with fs.open(model_metadata_path, 'r') as model_metadata_fp:
+        model_metadata: ChromatinModelEnsembleHead = ChromatinModelEnsembleHead.model_validate_json(model_metadata_fp.read())
+
+    return model_metadata
