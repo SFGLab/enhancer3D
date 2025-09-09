@@ -4410,29 +4410,6 @@
             "ensemble_id": "H1ESC_full_2_chr2",
             "ensemble_region": {
                 "chromosome": "chr2",
-                "start": 0,
-                "end": 11842
-            },
-            "metadata": {
-                "cell_line": "H1ESC",
-                "species": [
-                    "Modern Human"
-                ],
-                "authors": [
-                    "Nik",
-                    "Michał"
-                ],
-                "modeling_pipeline": "cudaMMC"
-            },
-            "enhancer_atlas_dataset_name": "enchancers.H1",
-            "enhancer_atlas_dataset_type": "bed",
-            "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
-            "gencode_annotation_dataset_type": "gtf"
-        },
-        {
-            "ensemble_id": "H1ESC_full_2_chr2",
-            "ensemble_region": {
-                "chromosome": "chr2",
                 "start": 11842,
                 "end": 141982
             },
@@ -34149,29 +34126,6 @@
             "ensemble_id": "H1ESC_full_2_chr11",
             "ensemble_region": {
                 "chromosome": "chr11",
-                "start": 0,
-                "end": 250837
-            },
-            "metadata": {
-                "cell_line": "H1ESC",
-                "species": [
-                    "Modern Human"
-                ],
-                "authors": [
-                    "Nik",
-                    "Michał"
-                ],
-                "modeling_pipeline": "cudaMMC"
-            },
-            "enhancer_atlas_dataset_name": "enchancers.H1",
-            "enhancer_atlas_dataset_type": "bed",
-            "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
-            "gencode_annotation_dataset_type": "gtf"
-        },
-        {
-            "ensemble_id": "H1ESC_full_2_chr11",
-            "ensemble_region": {
-                "chromosome": "chr11",
                 "start": 250837,
                 "end": 365318
             },
@@ -49975,29 +49929,6 @@
                 "chromosome": "chr17",
                 "start": 79392724,
                 "end": 82781288
-            },
-            "metadata": {
-                "cell_line": "H1ESC",
-                "species": [
-                    "Modern Human"
-                ],
-                "authors": [
-                    "Nik",
-                    "Michał"
-                ],
-                "modeling_pipeline": "cudaMMC"
-            },
-            "enhancer_atlas_dataset_name": "enchancers.H1",
-            "enhancer_atlas_dataset_type": "bed",
-            "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
-            "gencode_annotation_dataset_type": "gtf"
-        },
-        {
-            "ensemble_id": "H1ESC_full_2_chr18",
-            "ensemble_region": {
-                "chromosome": "chr18",
-                "start": 0,
-                "end": 626856
             },
             "metadata": {
                 "cell_line": "H1ESC",
