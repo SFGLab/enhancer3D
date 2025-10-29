@@ -15,6 +15,8 @@ class CellLineWithLinksInput(BaseModel):
     species: Optional[str] = None
     regions: List[PartialChromatinRegion] = []
     gene_ids: List[str] = []
+    output_partition_count: int = 1
+    output_include_distances_array: bool = True
 
 
 class CellLinkCrossComparisonInput(BaseModel):
@@ -25,6 +27,8 @@ class CellLinkCrossComparisonInput(BaseModel):
     species_compare: Optional[str] = None
     regions: List[PartialChromatinRegion] = []
     gene_ids: List[str] = []
+    output_partition_count: int = 1
+    output_include_distances_array: bool = True
 
 
 QueryInput = Union[CellLineWithLinksInput, CellLinkCrossComparisonInput]

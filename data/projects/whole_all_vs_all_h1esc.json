@@ -1,0 +1,527 @@
+{
+  "project": {
+    "id": "whole_all_vs_all_h1esc",
+    "authors": [
+      "Nik",
+      "Michał"
+    ],
+    "species": [
+      "Modern Human"
+    ],
+    "cell_lines": [
+      "H1ESC"
+    ]
+  },
+  "datasets": [
+    {
+      "ensemble_id": "H1ESC_full_2_chr1",
+      "ensemble_region": {
+        "chromosome": "chr1",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr2",
+      "ensemble_region": {
+        "chromosome": "chr2",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr3",
+      "ensemble_region": {
+        "chromosome": "chr3",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr4",
+      "ensemble_region": {
+        "chromosome": "chr4",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr5",
+      "ensemble_region": {
+        "chromosome": "chr5",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr6",
+      "ensemble_region": {
+        "chromosome": "chr6",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr7",
+      "ensemble_region": {
+        "chromosome": "chr7",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr8",
+      "ensemble_region": {
+        "chromosome": "chr8",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr9",
+      "ensemble_region": {
+        "chromosome": "chr9",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr10",
+      "ensemble_region": {
+        "chromosome": "chr10",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr11",
+      "ensemble_region": {
+        "chromosome": "chr11",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr12",
+      "ensemble_region": {
+        "chromosome": "chr12",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr13",
+      "ensemble_region": {
+        "chromosome": "chr13",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr14",
+      "ensemble_region": {
+        "chromosome": "chr14",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr15",
+      "ensemble_region": {
+        "chromosome": "chr15",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr16",
+      "ensemble_region": {
+        "chromosome": "chr16",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr17",
+      "ensemble_region": {
+        "chromosome": "chr17",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr18",
+      "ensemble_region": {
+        "chromosome": "chr18",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr19",
+      "ensemble_region": {
+        "chromosome": "chr19",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr20",
+      "ensemble_region": {
+        "chromosome": "chr20",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr21",
+      "ensemble_region": {
+        "chromosome": "chr21",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    },
+    {
+      "ensemble_id": "H1ESC_full_2_chr22",
+      "ensemble_region": {
+        "chromosome": "chr22",
+        "start": 0,
+        "end": 1000000000
+      },
+      "metadata": {
+        "cell_line": "H1ESC",
+        "species": [
+          "Modern Human"
+        ],
+        "authors": [
+          "Nik",
+          "Michał"
+        ],
+        "modeling_pipeline": "cudaMMC"
+      },
+      "enhancer_atlas_dataset_name": "enchancers.H1",
+      "enhancer_atlas_dataset_type": "bed",
+      "gencode_annotation_dataset_name": "gencode.v40.basic.annotation",
+      "gencode_annotation_dataset_type": "gtf"
+    }
+  ],
+  "configuration": {
+    "base_pair_linear_distance_threshold": null,
+    "enhancer_promoter_pairs_chunk_size": 100000
+  }
+}
