@@ -239,7 +239,7 @@ def query_cell_line_with_links(spark: SparkSession, request_id: str, input: Cell
     relevant_projects_df = _projects_by_cell_line(spark, input.cell_line, input.species, input.regions)
     distances_with_links_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_df, input.regions, input.gene_ids)
     if not input.output_include_distances_array:
-        distances_with_links_df = distances_with_links_df.drop('distances.dist')
+        distances_with_links_df = distances_with_links_df.drop('distances.dist', 'dist')
 
     path = f"s3a://database/results/{request_id}"
     distances_with_links_df.repartition(input.output_partition_count).write.mode("overwrite").parquet(path)
@@ -299,7 +299,7 @@ def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input
     )
 
     if not input.output_include_distances_array:
-        cross_comparison_df = cross_comparison_df.drop('distances_base.dist', 'distances_compare.dist')
+        cross_comparison_df = cross_comparison_df.drop('distances_base.dist', 'distances_compare.dist', 'dist')
 
     path = f"s3a://database/results/{request_id}"
     cross_comparison_df.repartition(input.output_partition_count).write.mode("overwrite").parquet(path)
