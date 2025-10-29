@@ -1,4 +1,4 @@
-FROM bitnami/spark:3.5.3 AS base
+FROM bitnamilegacy/spark:3.5.3 AS base
 
 # Install Livy
 ARG LIVY_VERSION=0.8.0-incubating
