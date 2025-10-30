@@ -17,6 +17,6 @@ class ExecuteQueryWorkflow:
         return await workflow.execute_activity(
             activity=execute_query,
             arg=query,
-            start_to_close_timeout=timedelta(minutes=30),
+            start_to_close_timeout=timedelta(hours=6),
             retry_policy=get_default_retry_policy()
         )
