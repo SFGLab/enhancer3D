@@ -54,7 +54,8 @@ def _projects_by_cell_line(
     spark: SparkSession,
     cell_line: str,
     species: str = None,
-    regions: List[PartialChromatinRegion] = None
+    regions: List[PartialChromatinRegion] = None,
+    project_ids: List[str] = None
 ) -> DataFrame:
     projects_df = (
         spark
@@ -76,6 +77,9 @@ def _projects_by_cell_line(
 
     if species:
         projects_df = projects_df.where(F.array_contains(F.col('species'), species))
+
+    if project_ids and len(project_ids) > 0:
+        projects_df = projects_df.where(F.col('project_id').isin(project_ids))
 
     if regions and len(regions) > 0:
         regions_schema = T.StructType([
@@ -236,7 +240,7 @@ def _distances_with_links_for_ensemble_ids(
 
 
 def query_cell_line_with_links(spark: SparkSession, request_id: str, input: CellLineWithLinksInput) -> Response:
-    relevant_projects_df = _projects_by_cell_line(spark, input.cell_line, input.species, input.regions)
+    relevant_projects_df = _projects_by_cell_line(spark, input.cell_line, input.species, input.regions, input.project_ids)
     distances_with_links_df = _distances_with_links_for_ensemble_ids(spark, relevant_projects_df, input.regions, input.gene_ids)
     if not input.output_include_distances_array:
         distances_with_links_df = distances_with_links_df.drop('distances.dist', 'dist')
@@ -251,8 +255,8 @@ def query_cell_line_with_links(spark: SparkSession, request_id: str, input: Cell
 
 
 def query_cell_link_cross_comparison(spark: SparkSession, request_id: str, input: CellLinkCrossComparisonInput) -> Response:
-    relevant_projects_base_df = _projects_by_cell_line(spark, input.cell_line_base, input.species_base, input.regions)
-    relevant_projects_compare_df = _projects_by_cell_line(spark, input.cell_line_compare, input.species_compare, input.regions)
+    relevant_projects_base_df = _projects_by_cell_line(spark, input.cell_line_base, input.species_base, input.regions, input.project_ids_base)
+    relevant_projects_compare_df = _projects_by_cell_line(spark, input.cell_line_compare, input.species_compare, input.regions, input.project_ids_compare)
 
     distances_with_links_base_df = (
         _distances_with_links_for_ensemble_ids(spark, relevant_projects_base_df, input.regions, input.gene_ids)

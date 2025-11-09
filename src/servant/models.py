@@ -15,6 +15,7 @@ class CellLineWithLinksInput(BaseModel):
     species: Optional[str] = None
     regions: List[PartialChromatinRegion] = []
     gene_ids: List[str] = []
+    project_ids: List[str] = []
     output_partition_count: int = 1
     output_include_distances_array: bool = True
 
@@ -23,8 +24,10 @@ class CellLinkCrossComparisonInput(BaseModel):
     type: Literal["cell_link_cross_comparison"] = "cell_link_cross_comparison"
     cell_line_base: str
     species_base: Optional[str] = None
+    project_ids_base: List[str] = []
     cell_line_compare: str
     species_compare: Optional[str] = None
+    project_ids_compare: List[str] = []
     regions: List[PartialChromatinRegion] = []
     gene_ids: List[str] = []
     output_partition_count: int = 1

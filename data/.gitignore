@@ -8,3 +8,6 @@ distance_distributions*/
 links/*.bed
 rnaseq/*
 whole_chromosomes/*
+haploblocks/GM12878_full_2_chr6.coordinates.npy
+haploblocks/GM12878_full_2_chr6.metadata.json
+haploblocks/haploblock_distances_chr6.*
