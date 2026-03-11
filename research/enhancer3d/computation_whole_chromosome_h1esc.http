@@ -1,0 +1,9 @@
+POST http://enhancer3d/query/
+Content-Type: application/json
+
+{
+    "type": "cell_line_with_links",
+    "cell_line": "H1ESC",
+    "species": ["Modern Human"],
+    "output_partition_count": 1
+}
