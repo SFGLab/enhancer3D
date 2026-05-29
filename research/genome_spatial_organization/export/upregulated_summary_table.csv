@@ -1,7 +1,7 @@
 Cell line,Total up-regulated gene count,Up-regulated genes shifting into the small proximity category
-GM12878 in contrast with HFFC6,1377,79
+GM12878 in contrast with HFFC6,1377,251
 GM12878 in contrast with H1ESC,1193,242
 HFFC6 in contrast with GM12878,1349,257
-HFFC6 in contrast with H1ESC,1380,64
-H1ESC in contrast with GM12878,1573,91
+HFFC6 in contrast with H1ESC,1380,274
+H1ESC in contrast with GM12878,1573,297
 H1ESC in contrast with HFFC6,1825,310
