@@ -1,0 +1,124 @@
+# Only Reactome terms with FDR < 0.05
+
+##########################################################################################
+# with mids (small -> mid/large)
+##########################################################################################
+
+==========================================================================================
+GM12878 small vs H1ESC mid/large   (242 genes, 14 reactome terms)
+==========================================================================================
+  Cytokine Signaling in Immune System	(FDR=2.01e-08)
+  Immune System	(FDR=2.53e-08)
+  Signaling by Interleukins	(FDR=1.47e-06)
+  Interleukin-3, Interleukin-5 and GM-CSF Signaling	(FDR=0.000142)
+  GPVI-mediated Activation Cascade	(FDR=0.000261)
+  Innate Immune System	(FDR=0.000421)
+  Regulation of Signaling by CBL	(FDR=0.00794)
+  Interleukin-2 Family Signaling	(FDR=0.00925)
+  Toll-like Receptor Cascades	(FDR=0.00976)
+  Toll Like Receptor 4 (TLR4) Cascade	(FDR=0.0152)
+  Signaling by CSF1 (M-CSF) in Myeloid Cells	(FDR=0.0201)
+  Signaling by the B Cell Receptor (BCR)	(FDR=0.0233)
+  Antigen Activates B Cell Receptor (BCR) Leading to Generation of Second Messengers	(FDR=0.0309)
+  Interferon Gamma Signaling	(FDR=0.0357)
+
+==========================================================================================
+GM12878 small vs HFFC6 mid/large   (251 genes, 3 reactome terms)
+==========================================================================================
+  Cytokine Signaling in Immune System	(FDR=0.000274)
+  Immune System	(FDR=0.0102)
+  Interleukin-3, Interleukin-5 and GM-CSF Signaling	(FDR=0.038)
+
+==========================================================================================
+H1ESC small vs GM12878 mid/large   (297 genes, 4 reactome terms)
+==========================================================================================
+  Neuronal System	(FDR=0.00492)
+  Transmission Across Chemical Synapses	(FDR=0.00862)
+  Neurotransmitter Receptors and Postsynaptic Signal Transmission	(FDR=0.00862)
+  Epithelial-Mesenchymal Transition (EMT) During Gastrulation	(FDR=0.0174)
+
+==========================================================================================
+H1ESC small vs HFFC6 mid/large   (310 genes, 0 reactome terms)
+==========================================================================================
+
+==========================================================================================
+HFFC6 small vs GM12878 mid/large   (257 genes, 40 reactome terms)
+==========================================================================================
+  Extracellular Matrix Organization	(FDR=0.000981)
+  Beta-catenin Independent WNT Signaling	(FDR=0.00274)
+  Ca2+ Pathway	(FDR=0.00318)
+  Opioid Signalling	(FDR=0.00318)
+  Signaling by WNT	(FDR=0.0106)
+  DARPP-32 Events	(FDR=0.0232)
+  Nervous System Development	(FDR=0.0232)
+  Adrenaline,noradrenaline Inhibits Insulin Secretion	(FDR=0.0232)
+  Integration of Energy Metabolism	(FDR=0.0232)
+  Regulation of Insulin Secretion	(FDR=0.0232)
+  Activation of G Protein Gated Potassium Channels	(FDR=0.0232)
+  G Protein Gated Potassium Channels	(FDR=0.0232)
+  Inhibition of Voltage Gated Ca2+ Channels via Gbeta Gamma Subunits	(FDR=0.0232)
+  Clathrin-mediated Endocytosis	(FDR=0.0232)
+  Axon Guidance	(FDR=0.0232)
+  Laminin Interactions	(FDR=0.0232)
+  Integrin Cell Surface Interactions	(FDR=0.0299)
+  Glucagon Signaling in Metabolic Regulation	(FDR=0.0299)
+  Platelet Homeostasis	(FDR=0.0303)
+  Inwardly Rectifying K+ Channels	(FDR=0.0338)
+  G Beta Gamma Signalling Through BTK	(FDR=0.0447)
+  Hemostasis	(FDR=0.0447)
+  Prostacyclin Signalling Through Prostacyclin Receptor	(FDR=0.0447)
+  High Laminar Flow Shear Stress Activates Signaling by PIEZO1 and PECAM1 CDH5 KDR in Endothelial Cell	(FDR=0.0447)
+  G Alpha (Q) Signalling Events	(FDR=0.0447)
+  Glucagon-like Peptide-1 (GLP1) Regulates Insulin Secretion	(FDR=0.0447)
+  G Beta Gamma Signalling Through CDC42	(FDR=0.0447)
+  G Beta Gamma Signalling Through PLC Beta	(FDR=0.0447)
+  Potassium Channels	(FDR=0.0447)
+  ADORA2B Mediated Anti-Inflammatory Cytokines Production	(FDR=0.0447)
+  Activation of GABAB Receptors	(FDR=0.0447)
+  GABA B Receptor Activation	(FDR=0.0447)
+  Vasopressin Regulates Renal Water Homeostasis via Aquaporins	(FDR=0.0447)
+  Presynaptic Function of Kainate Receptors	(FDR=0.0454)
+  Elastic Fibre Formation	(FDR=0.0454)
+  G Alpha (I) Signalling Events	(FDR=0.0454)
+  GPER1 Signaling	(FDR=0.0463)
+  Signal Transduction	(FDR=0.0463)
+  ADP Signalling Through P2Y Purinoceptor 12	(FDR=0.0468)
+  ECM Proteoglycans	(FDR=0.0485)
+
+==========================================================================================
+HFFC6 small vs H1ESC mid/large   (274 genes, 2 reactome terms)
+==========================================================================================
+  Extracellular Matrix Organization	(FDR=0.00636)
+  GPER1 Signaling	(FDR=0.00792)
+
+##########################################################################################
+# without mids (small -> large)
+##########################################################################################
+
+==========================================================================================
+GM12878 small vs H1ESC large   (60 genes, 0 reactome terms)
+==========================================================================================
+
+==========================================================================================
+GM12878 small vs HFFC6 large   (79 genes, 0 reactome terms)
+==========================================================================================
+
+==========================================================================================
+H1ESC small vs GM12878 large   (91 genes, 3 reactome terms)
+==========================================================================================
+  Laminin Interactions	(FDR=0.0425)
+  Tight Junction Interactions	(FDR=0.0425)
+  Extracellular Matrix Organization	(FDR=0.0425)
+
+==========================================================================================
+H1ESC small vs HFFC6 large   (95 genes, 0 reactome terms)
+==========================================================================================
+
+==========================================================================================
+HFFC6 small vs GM12878 large   (62 genes, 0 reactome terms)
+==========================================================================================
+
+==========================================================================================
+HFFC6 small vs H1ESC large   (64 genes, 0 reactome terms)
+==========================================================================================
+
