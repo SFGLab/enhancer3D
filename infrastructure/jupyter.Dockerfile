@@ -6,7 +6,7 @@ USER root
 RUN conda install requests-kerberos -y
 
 # Install git
-RUN apt-get update && apt-get install -y git zip unzip
+RUN apt-get update && apt-get install -y git zip unzip bedtools g++ zlib1g-dev
 RUN git config --global user.email "jupyter@sandbox.kot.tools"
 RUN git config --global user.name "Jupyter"
 

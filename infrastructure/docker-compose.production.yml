@@ -62,6 +62,8 @@ services:
     jupyter:
         ports:
             - "8888:8888"
+        volumes:
+            - /mnt/raid/cudammc/:/cudammc/
 
     livy:
         ports:
